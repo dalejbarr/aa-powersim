@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this book, please cite it as below."
+authors:
+- family-names: "Barr"
+  given-names: "Dale"
+  orcid: "https://orcid.org/0000-0002-1121-4608"
+title: "Mixed-effects models for longitudinal data: A workshop at the University of Basel (March 2-3, 2022)."
+version: 1.0
+date-released: 2022-03-03
+url: "https://dalejbarr.github.io/basel-longitudinal/"
