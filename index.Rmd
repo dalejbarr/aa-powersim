@@ -21,11 +21,11 @@ knitr::write_bib(c(
 
 ```
 
-# Workshop Overview {-}
+# Workshop: Simulating power for mixed-effects models {-}
 
 *Dale J. Barr*
 
-**AMLaP Asia, November 30, 2023**
+**[AMLaP Asia](http://ling.cuhk.edu.hk/amlap.asia/), November 30, 2023**
 
 ## Background {-}
 
@@ -35,17 +35,16 @@ Two pre-requisites for the workshop are: (1) basic understanding of linear regre
 
 ## Workshop plan {-}
 
-- *Part 1* (9am-12pm): **Background**
-  - programming essentials
-  - variance-covariance matrices
-  - walkthrough of the `sleepstudy` data
-  - specifying the random-effects structure
+- *Part 1* (9:00-12:00): **Building blocks of simulation**
+  - writing custom functions
+  - data structures
+  - iteration 
+  - handling errors and warnings
 
-- *Part 2* (1pm-4pm): **Mixed-effects modeling**
-  - going further:
-    - dealing with autocorrelation
-    - Generalized Linear Mixed Models (GLMMs) and
-    - Generalized Additive Mixed Models (GAMMs)
+- *Part 2* (14:00-17:00): **Mixed-effects modeling**
+  - understanding the data generating process (DGP)
+    - sleepstudy data
+	- data with crossed random effects
 
 ## Notes on these materials {-}
 

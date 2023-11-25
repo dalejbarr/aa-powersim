@@ -1,0 +1,35 @@
+---
+title: "1. Building blocks for Monte Carlo simulation"
+author: "Dale Barr"
+---
+
+## Planning experiments
+
+## Why simulation?
+
+## Type I Error / Power
+
+## Monte Carlo simulation
+
+## Writing custom functions
+
+## Data structures
+
+:::: {.columns}
+
+::: {.column width="50%"}
+`list-cols`
+:::
+
+::: {.column width="50%"}
+`tibbles`
+:::
+
+::::
+
+## Iterating over column values
+
+## Handling errors and warnings
+
+## Extras: Parallelizing code
+

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models</title>
+<meta name="author" content="Dale J. Barr">
+<meta name="description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<meta name="generator" content="bookdown 0.36 with bs4_book()">
+<meta property="og:title" content="Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://dalejbarr.github.io/aa-powersim/linear-mixed-effects-modeling.html">
+<meta property="og:description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models">
+<meta name="twitter:description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.0/transition.js"></script><script src="libs/bs3compat-0.6.0/tabs.js"></script><script src="libs/bs3compat-0.6.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=G-6NP3MF25W3"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-6NP3MF25W3');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="include/psyteachr.css">
+<link rel="stylesheet" href="include/webex.css">
+<link rel="stylesheet" href="include/style.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Simulating power for mixed-effects models</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Workshop: Simulating power for mixed-effects models</a></li>
+<li><a class="" href="building-blocks-of-simulation.html"><span class="header-section-number">1</span> Building blocks of simulation</a></li>
+<li><a class="active" href="linear-mixed-effects-modeling.html"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></li>
+<li><a class="" href="references-and-further-reading.html"><span class="header-section-number">3</span> References and Further Reading</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dalejbarr/aa-powersim">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="linear-mixed-effects-modeling" class="section level1" number="2">
+<h1>
+<span class="header-section-number">2</span> Linear mixed-effects modeling<a class="anchor" aria-label="anchor" href="#linear-mixed-effects-modeling"><i class="fas fa-link"></i></a>
+</h1>
+<p>For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's imagine that the experiment involves lexical decisions to a set of words (e.g., is "PINT" a word or nonword?), and the dependent variable is response time (in milliseconds), and the independent variable is word type (noun vs verb). We want to treat both subjects and words as random factors (so that we can generalize to the population of events where subjects encounter words).</p>
+<p>The general linear model for our study is:</p>
+<p><span class="math display">\[Y_{si} = \beta_0 + S_{0s} + I_{0i} + (\beta_1 + S_{1s})X_{i} + e_{si}\]</span></p>
+<p>where:</p>
+<div class="inline-table"><table class="table table-sm"><tbody>
+<tr class="odd">
+<td><span class="math inline">\(Y_{si}\)</span></td>
+<td><code>Y</code></td>
+<td>RT for subject <span class="math inline">\(s\)</span> responding to item <span class="math inline">\(i\)</span>;</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\beta_0\)</span></td>
+<td><code>mu</code></td>
+<td>grand mean;</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(S_{0s}\)</span></td>
+<td><code>sri</code></td>
+<td>random intercept for subject <span class="math inline">\(s\)</span>;</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(I_{0i}\)</span></td>
+<td><code>iri</code></td>
+<td>random intercept for item <span class="math inline">\(i\)</span>;</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\beta_1\)</span></td>
+<td><code>eff</code></td>
+<td>fixed effect of word type (slope);</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(S_{1s}\)</span></td>
+<td><code>srs</code></td>
+<td>by-subject random slope;</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(X_{i}\)</span></td>
+<td><code>x</code></td>
+<td>deviation-coded predictor variable for word type;</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(e_{si}\)</span></td>
+<td><code>err</code></td>
+<td>residual error.</td>
+</tr>
+</tbody></table></div>
+<p><strong>Subjects</strong></p>
+<p><span class="math display">\[\left&lt;S_{0i},S_{1i}\right&gt; \sim N(\left&lt;0,0\right&gt;, \Sigma)\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\Sigma = \left(\begin{array}{cc}{\tau_{00}}^2 &amp; \rho\tau_{00}\tau_{11} \\ \rho\tau_{00}\tau_{11} &amp; {\tau_{11}}^2 \\ \end{array}\right) \]</span></p>
+<p><strong>Items</strong></p>
+<p><span class="math display">\[I_{0i} \sim N(0, \omega_{00}^2)\]</span></p>
+<div id="set-up-the-environment-and-define-the-parameters-for-the-dgp" class="section level2" number="2.1">
+<h2>
+<span class="header-section-number">2.1</span> Set up the environment and define the parameters for the DGP<a class="anchor" aria-label="anchor" href="#set-up-the-environment-and-define-the-parameters-for-the-dgp"><i class="fas fa-link"></i></a>
+</h2>
+<p>If you want to get the same results as everyone else for this exercise, then we all should seed the random number generator with the same value. While we're at it, let's load in the packages we need.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/lme4/lme4/">"lme4"</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://tidyverse.tidyverse.org">"tidyverse"</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span></span></code></pre></div>
+<p>Now let's define the parameters for the DGP (data generating process).</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># number of subjects</span></span>
+<span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fl">50</span>  <span class="co"># must be an even number</span></span>
+<span></span>
+<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fl">800</span> <span class="co"># grand mean</span></span>
+<span><span class="va">eff</span> <span class="op">&lt;-</span> <span class="fl">80</span> <span class="co"># 80 ms difference</span></span>
+<span><span class="va">effc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span> <span class="co"># deviation codes</span></span>
+<span></span>
+<span><span class="va">iri_sd</span> <span class="op">&lt;-</span> <span class="fl">80</span> <span class="co"># by-item random intercept sd (omega_00)</span></span>
+<span></span>
+<span><span class="co">## for the by-subjects variance-covariance matrix</span></span>
+<span><span class="va">sri_sd</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># by-subject random intercept sd</span></span>
+<span><span class="va">srs_sd</span> <span class="op">&lt;-</span> <span class="fl">40</span> <span class="co"># by-subject random slope sd</span></span>
+<span><span class="va">rcor</span> <span class="op">&lt;-</span> <span class="fl">.2</span> <span class="co"># correlation between intercept and slope</span></span>
+<span></span>
+<span><span class="va">err_sd</span> <span class="op">&lt;-</span> <span class="fl">200</span> <span class="co"># residual (standard deviation)</span></span></code></pre></div>
+<p>You'll create three tables:</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="14%">
+<col width="85%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><code>subjects</code></td>
+<td>table of subject data including <code>subj_id</code> and subject random effects</td>
+</tr>
+<tr class="even">
+<td><code>items</code></td>
+<td>table of stimulus data including <code>item_id</code> and item random effect</td>
+</tr>
+<tr class="odd">
+<td><code>trials</code></td>
+<td>table of trials enumerating encounters between subjects/stimuli</td>
+</tr>
+</tbody>
+</table></div>
+<p>Then you will merge together the information in the three tables, and calculate the response variable according to the model formula above.</p>
+</div>
+<div id="generate-a-sample-of-stimuli" class="section level2" number="2.2">
+<h2>
+<span class="header-section-number">2.2</span> Generate a sample of stimuli<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-stimuli"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let's randomly generate our 50 items. Create a tibble called <code>item</code> like the one below, where <code>iri</code> are the by-item random intercepts (drawn from a normal distribution with variance <span class="math inline">\(\omega_{00}^2\)</span> = <code>iri_sd^2</code>). Half of the words are of type NOUN (<code>cond</code> = -.5) and half of type VERB (<code>cond</code> = .5).</p>
+<pre><code>## # A tibble: 50 × 3
+##    item_id  cond     iri
+##      &lt;int&gt; &lt;dbl&gt;   &lt;dbl&gt;
+##  1       1  -0.5 -217.  
+##  2       2   0.5  -77.9 
+##  3       3  -0.5  -96.9 
+##  4       4   0.5   40.4 
+##  5       5  -0.5   28.0 
+##  6       6   0.5  160.  
+##  7       7  -0.5   -4.45
+##  8       8   0.5  -83.9 
+##  9       9  -0.5 -121.  
+## 10      10   0.5  -12.1 
+## # ℹ 40 more rows</code></pre>
+<div class="webex-solution">
+<button>
+Hint (cond)
+</button>
+<p><code><a href="https://rdrr.io/r/base/rep.html">rep()</a></code></p>
+</div>
+<div class="webex-solution">
+<button>
+Hint (iri)
+</button>
+<p><code>rnorm(nitem, ???, ????...)</code></p>
+</div>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
+<span>                cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>                iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div id="generate-a-sample-of-subjects" class="section level2" number="2.3">
+<h2>
+<span class="header-section-number">2.3</span> Generate a sample of subjects<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-subjects"><i class="fas fa-link"></i></a>
+</h2>
+<p>To generate the by-subject random effects, you will need to generate data from a <em>bivariate normal distribution</em>. To do this, we will use the function <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
+<div class="warning">
+<p>Do not run <code><a href="http://www.stats.ox.ac.uk/pub/MASS4/">library("MASS")</a></code> just to get this one function, because <code>MASS</code> has a function <code><a href="https://dplyr.tidyverse.org/reference/select.html">select()</a></code> that will overwrite the tidyverse version. Since all we want from MASS is the <code>mvrnorm()</code> function, we can just access it directly by the <code>pkgname::function</code> syntax, i.e., <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
+</div>
+<p>Here is an example of how to use <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code> to randomly generate correlated data (with <span class="math inline">\(r = -.6\)</span>) for a simple bivariate case. In this example, the variances of each of the two variables is defined as 1, such that the covariance becomes equal to the correlation between the variables.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## mx is the variance-covariance matrix</span></span>
+<span><span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">.6</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.6</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">biv_data</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span><span class="op">(</span><span class="fl">1000</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## look at biv_data</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/deprecated.html">as.tibble</a></span><span class="op">(</span><span class="va">biv_data</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">V1</span>, <span class="va">V2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## Warning: `as.tibble()` was deprecated in tibble 2.0.0.
+## ℹ Please use `as_tibble()` instead.
+## ℹ The signature and semantics have changed, see `?as_tibble`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if
+## `.name_repair` is omitted as of tibble 2.0.0.
+## ℹ Using compatibility `.name_repair`.
+## ℹ The deprecated feature was likely used in the tibble package.
+##   Please report the issue at &lt;https://github.com/tidyverse/tibble/issues&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<div class="inline-figure"><img src="02_mixed-effects_files/figure-html/unnamed-chunk-5-1.png" width="100%" style="display: block; margin: auto;"></div>
+<p>Your subjects table should look like this:</p>
+<div class="webex-solution">
+<button>
+Click to reveal full table
+</button>
+</div>
+
+</div>
+</div>
+<script>
+
+/* update total correct if #webex-total_correct exists */
+update_total_correct = function() {
+  if (t = document.getElementById("webex-total_correct")) {
+    t.innerHTML =
+      document.getElementsByClassName("webex-correct").length + " of " +
+      document.getElementsByClassName("webex-solveme").length + " correct";
+  }
+}
+
+/* webex-solution button toggling function */
+b_func = function() {
+  var cl = this.parentElement.classList;
+  if (cl.contains('open')) {
+    cl.remove("open");
+  } else {
+    cl.add("open");
+  }
+}
+
+/* function for checking solveme answers */
+solveme_func = function(e) {
+  var real_answers = JSON.parse(this.dataset.answer);
+  var my_answer = this.value;
+  var cl = this.classList;
+  if (cl.contains("ignorecase")) {
+    my_answer = my_answer.toLowerCase();
+  }
+  if (cl.contains("nospaces")) {
+    my_answer = my_answer.replace(/ /g, "")
+  }
+
+  if (my_answer == "") {
+    cl.remove("webex-correct");
+    cl.remove("webex-incorrect");
+  } else if (real_answers.includes(my_answer)) {
+    cl.add("webex-correct");
+    cl.remove("webex-incorrect");
+  } else {
+    cl.add("webex-incorrect");
+    cl.remove("webex-correct");
+  }
+
+  // match numeric answers within a specified tolerance
+  if(this.dataset.tol > 0){
+    var tol = JSON.parse(this.dataset.tol);
+    var matches = real_answers.map(x => Math.abs(x - my_answer) < tol)
+    if (matches.reduce((a, b) => a + b, 0) > 0) {
+      cl.add("webex-correct");
+    } else {
+      cl.remove("webex-correct");
+    }
+  }
+
+  // added regex bit
+  if (cl.contains("regex")){
+    answer_regex = RegExp(real_answers.join("|"))
+    if (answer_regex.test(my_answer)) {
+      cl.add("webex-correct");
+    }
+  }
+
+  update_total_correct();
+}
+
+window.onload = function() {
+  /* set up solution buttons */
+  var buttons = document.getElementsByTagName("button");
+
+  for (var i = 0; i < buttons.length; i++) {
+    if (buttons[i].parentElement.classList.contains('webex-solution')) {
+      buttons[i].onclick = b_func;
+    }
+  }
+
+  /* set up webex-solveme inputs */
+  var solveme = document.getElementsByClassName("webex-solveme");
+
+  for (var i = 0; i < solveme.length; i++) {
+    /* make sure input boxes don't auto-anything */
+    solveme[i].setAttribute("autocomplete","off");
+    solveme[i].setAttribute("autocorrect", "off");
+    solveme[i].setAttribute("autocapitalize", "off");
+    solveme[i].setAttribute("spellcheck", "false");
+    solveme[i].value = "";
+
+    /* adjust answer for ignorecase or nospaces */
+    var cl = solveme[i].classList;
+    var real_answer = solveme[i].dataset.answer;
+    if (cl.contains("ignorecase")) {
+      real_answer = real_answer.toLowerCase();
+    }
+    if (cl.contains("nospaces")) {
+      real_answer = real_answer.replace(/ /g, "");
+    }
+    solveme[i].dataset.answer = real_answer;
+
+    /* attach checking function */
+    solveme[i].onkeyup = solveme_func;
+    solveme[i].onchange = solveme_func;
+  }
+
+  update_total_correct();
+}
+
+</script><script>
+$( document ).ready(function() {
+  var cite = ' ';
+  var psyteachr = ' <a href="https://psyteachr.github.io/"><img src="images/logos/psyteachr_logo.png" style="height: 31px; color: white;" alt="psyTeachR: Reproducible Research" /></a>';
+  var license = ' <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/" target="blank"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png"></a>';
+
+  $("footer div.row div:eq(1) p").html(
+    psyteachr + license + cite
+  );
+});
+</script><div class="chapter-nav">
+<div class="prev"><a href="building-blocks-of-simulation.html"><span class="header-section-number">1</span> Building blocks of simulation</a></div>
+<div class="next"><a href="references-and-further-reading.html"><span class="header-section-number">3</span> References and Further Reading</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#linear-mixed-effects-modeling"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></li>
+<li><a class="nav-link" href="#set-up-the-environment-and-define-the-parameters-for-the-dgp"><span class="header-section-number">2.1</span> Set up the environment and define the parameters for the DGP</a></li>
+<li><a class="nav-link" href="#generate-a-sample-of-stimuli"><span class="header-section-number">2.2</span> Generate a sample of stimuli</a></li>
+<li><a class="nav-link" href="#generate-a-sample-of-subjects"><span class="header-section-number">2.3</span> Generate a sample of subjects</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dalejbarr/aa-powersim/blob/main/02_mixed-effects.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dalejbarr/aa-powersim/edit/main/02_mixed-effects.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Simulating power for mixed-effects models</strong>" was written by Dale J. Barr. It was last built on 2023-11-25.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

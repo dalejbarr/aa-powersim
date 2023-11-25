@@ -4,16 +4,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Workshop Overview | Simulating power for mixed-effects models</title>
+<title>Workshop: Simulating power for mixed-effects models | Simulating power for mixed-effects models</title>
 <meta name="author" content="Dale J. Barr">
 <meta name="description" content="Workshop at AMLaP Asia, November 30, 2023.">
 <meta name="generator" content="bookdown 0.36 with bs4_book()">
-<meta property="og:title" content="Workshop Overview | Simulating power for mixed-effects models">
+<meta property="og:title" content="Workshop: Simulating power for mixed-effects models | Simulating power for mixed-effects models">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://dalejbarr.github.io/aa-powersim">
 <meta property="og:description" content="Workshop at AMLaP Asia, November 30, 2023.">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Workshop Overview | Simulating power for mixed-effects models">
+<meta name="twitter:title" content="Workshop: Simulating power for mixed-effects models | Simulating power for mixed-effects models">
 <meta name="twitter:description" content="Workshop at AMLaP Asia, November 30, 2023.">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
@@ -52,8 +52,10 @@
 
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
-<li><a class="active" href="index.html">Workshop Overview</a></li>
-<li><a class="" href="references-and-further-reading.html"><span class="header-section-number">1</span> References and Further Reading</a></li>
+<li><a class="active" href="index.html">Workshop: Simulating power for mixed-effects models</a></li>
+<li><a class="" href="building-blocks-of-simulation.html"><span class="header-section-number">1</span> Building blocks of simulation</a></li>
+<li><a class="" href="linear-mixed-effects-modeling.html"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></li>
+<li><a class="" href="references-and-further-reading.html"><span class="header-section-number">3</span> References and Further Reading</a></li>
 </ul>
 
         <div class="book-extra">
@@ -61,11 +63,11 @@
         </div>
       </nav>
 </div>
-  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="workshop-overview" class="section level1 unnumbered" number="">
-<h1>Workshop Overview<a class="anchor" aria-label="anchor" href="#workshop-overview"><i class="fas fa-link"></i></a>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><!--bookdown:title:end--><!--bookdown:title:start--><div id="workshop-simulating-power-for-mixed-effects-models" class="section level1 unnumbered" number="">
+<h1>Workshop: Simulating power for mixed-effects models<a class="anchor" aria-label="anchor" href="#workshop-simulating-power-for-mixed-effects-models"><i class="fas fa-link"></i></a>
 </h1>
 <p><em>Dale J. Barr</em></p>
-<p><strong>AMLaP Asia, November 30, 2023</strong></p>
+<p><strong><a href="http://ling.cuhk.edu.hk/amlap.asia/">AMLaP Asia</a>, November 30, 2023</strong></p>
 <div id="background" class="section level2 unnumbered" number="">
 <h2>Background<a class="anchor" aria-label="anchor" href="#background"><i class="fas fa-link"></i></a>
 </h2>
@@ -77,22 +79,21 @@
 </h2>
 <ul>
 <li>
-<em>Part 1</em> (9am-12pm): <strong>Background</strong>
+<em>Part 1</em> (9:00-12:00): <strong>Building blocks of simulation</strong>
 <ul>
-<li>programming essentials</li>
-<li>variance-covariance matrices</li>
-<li>walkthrough of the <code>sleepstudy</code> data</li>
-<li>specifying the random-effects structure</li>
+<li>writing custom functions</li>
+<li>data structures</li>
+<li>iteration</li>
+<li>handling errors and warnings</li>
 </ul>
 </li>
 <li>
-<em>Part 2</em> (1pm-4pm): <strong>Mixed-effects modeling</strong>
+<em>Part 2</em> (14:00-17:00): <strong>Mixed-effects modeling</strong>
 <ul>
-<li>going further:
+<li>understanding the data generating process (DGP)
 <ul>
-<li>dealing with autocorrelation</li>
-<li>Generalized Linear Mixed Models (GLMMs) and</li>
-<li>Generalized Additive Mixed Models (GAMMs)</li>
+<li>sleepstudy data</li>
+<li>data with crossed random effects</li>
 </ul>
 </li>
 </ul>
@@ -233,11 +234,11 @@ $( document ).ready(function() {
 });
 </script><div class="chapter-nav">
 <div class="empty"></div>
-<div class="next"><a href="references-and-further-reading.html"><span class="header-section-number">1</span> References and Further Reading</a></div>
+<div class="next"><a href="building-blocks-of-simulation.html"><span class="header-section-number">1</span> Building blocks of simulation</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#workshop-overview">Workshop Overview</a></li>
+<li><a class="nav-link" href="#workshop-simulating-power-for-mixed-effects-models">Workshop: Simulating power for mixed-effects models</a></li>
 <li><a class="nav-link" href="#background">Background</a></li>
 <li><a class="nav-link" href="#workshop-plan">Workshop plan</a></li>
 <li><a class="nav-link" href="#notes-on-these-materials">Notes on these materials</a></li>
@@ -267,6 +268,34 @@ $( document ).ready(function() {
   </div>
 
 </div></div>
-</footer>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
 </body>
 </html>

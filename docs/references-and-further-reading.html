@@ -4,17 +4,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Chapter 1 References and Further Reading | Simulating power for mixed-effects models</title>
+<title>Chapter 3 References and Further Reading | Simulating power for mixed-effects models</title>
 <meta name="author" content="Dale J. Barr">
-<meta name="description" content="1.1 Further reading A good textbook that covers a lot of the same ground but in way more depth (and following a Bayesian approach) is Statistical Rethinking by Richard McElreath. Check out the...">
+<meta name="description" content="3.1 Further reading How to justify your sample size (Lakens, 2022). My tutorial with Lisa DeBruine (DeBruine &amp; Barr, 2021) which covers much of the same ground, but is mainly focused on...">
 <meta name="generator" content="bookdown 0.36 with bs4_book()">
-<meta property="og:title" content="Chapter 1 References and Further Reading | Simulating power for mixed-effects models">
+<meta property="og:title" content="Chapter 3 References and Further Reading | Simulating power for mixed-effects models">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://dalejbarr.github.io/aa-powersim/references-and-further-reading.html">
-<meta property="og:description" content="1.1 Further reading A good textbook that covers a lot of the same ground but in way more depth (and following a Bayesian approach) is Statistical Rethinking by Richard McElreath. Check out the...">
+<meta property="og:description" content="3.1 Further reading How to justify your sample size (Lakens, 2022). My tutorial with Lisa DeBruine (DeBruine &amp; Barr, 2021) which covers much of the same ground, but is mainly focused on...">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Chapter 1 References and Further Reading | Simulating power for mixed-effects models">
-<meta name="twitter:description" content="1.1 Further reading A good textbook that covers a lot of the same ground but in way more depth (and following a Bayesian approach) is Statistical Rethinking by Richard McElreath. Check out the...">
+<meta name="twitter:title" content="Chapter 3 References and Further Reading | Simulating power for mixed-effects models">
+<meta name="twitter:description" content="3.1 Further reading How to justify your sample size (Lakens, 2022). My tutorial with Lisa DeBruine (DeBruine &amp; Barr, 2021) which covers much of the same ground, but is mainly focused on...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.0/transition.js"></script><script src="libs/bs3compat-0.6.0/tabs.js"></script><script src="libs/bs3compat-0.6.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -52,8 +52,10 @@
 
       <nav aria-label="Table of contents"><h2>Table of contents</h2>
         <ul class="book-toc list-unstyled">
-<li><a class="" href="index.html">Workshop Overview</a></li>
-<li><a class="active" href="references-and-further-reading.html"><span class="header-section-number">1</span> References and Further Reading</a></li>
+<li><a class="" href="index.html">Workshop: Simulating power for mixed-effects models</a></li>
+<li><a class="" href="building-blocks-of-simulation.html"><span class="header-section-number">1</span> Building blocks of simulation</a></li>
+<li><a class="" href="linear-mixed-effects-modeling.html"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></li>
+<li><a class="active" href="references-and-further-reading.html"><span class="header-section-number">3</span> References and Further Reading</a></li>
 </ul>
 
         <div class="book-extra">
@@ -61,30 +63,60 @@
         </div>
       </nav>
 </div>
-  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="references-and-further-reading" class="section level1" number="1">
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="references-and-further-reading" class="section level1" number="3">
 <h1>
-<span class="header-section-number">1</span> References and Further Reading<a class="anchor" aria-label="anchor" href="#references-and-further-reading"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3</span> References and Further Reading<a class="anchor" aria-label="anchor" href="#references-and-further-reading"><i class="fas fa-link"></i></a>
 </h1>
-<div id="further-reading" class="section level2" number="1.1">
+<div id="further-reading" class="section level2" number="3.1">
 <h2>
-<span class="header-section-number">1.1</span> Further reading<a class="anchor" aria-label="anchor" href="#further-reading"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.1</span> Further reading<a class="anchor" aria-label="anchor" href="#further-reading"><i class="fas fa-link"></i></a>
 </h2>
-<p>A good textbook that covers a lot of the same ground but in way more depth (and following a Bayesian approach) is <a href="https://xcelab.net/rm/statistical-rethinking/">Statistical Rethinking</a> by Richard McElreath.</p>
+<ul>
+<li><p>How to justify your sample size <span class="citation">(Lakens, <a href="references-and-further-reading.html#ref-Lakens_2022" role="doc-biblioref">2022</a>)</span>.</p></li>
+<li><p>My tutorial with Lisa DeBruine <span class="citation">(DeBruine &amp; Barr, <a href="references-and-further-reading.html#ref-DeBruine_Barr_2021" role="doc-biblioref">2021</a>)</span> which covers much of the same ground, but is mainly focused on <em>understanding</em> how LMEMs work</p></li>
+<li><p>Other articles on power in LMEMs: <span class="citation">(Brysbaert &amp; Stevens, <a href="references-and-further-reading.html#ref-Brysbaert_Stevens_2018" role="doc-biblioref">2018</a>)</span>, <span class="citation">(Kumle et al., <a href="references-and-further-reading.html#ref-Kumle_Vo_Draschkow_2021" role="doc-biblioref">2021</a>)</span>, <span class="citation">(Westfall et al., <a href="references-and-further-reading.html#ref-Westfall_Kenny_Judd_2014" role="doc-biblioref">2014</a>)</span></p></li>
+<li><p>Monte Carlo simulations comparing methods for getting <span class="math inline">\(p\)</span>-values: <span class="citation">(Luke, <a href="references-and-further-reading.html#ref-Luke_2017" role="doc-biblioref">2017</a>)</span></p></li>
+</ul>
 <p>Check out the <a href="https://psyteachr.github.io/">online textbooks</a> and resources that my group and University of Glasgow have been developing. There are great resources to learn more about data wrangling and visualization, among other things.</p>
 </div>
-<div id="linear-mixed-effects-models" class="section level2" number="1.2">
+<div id="r-packages" class="section level2" number="3.2">
 <h2>
-<span class="header-section-number">1.2</span> Linear mixed-effects models<a class="anchor" aria-label="anchor" href="#linear-mixed-effects-models"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.2</span> R packages<a class="anchor" aria-label="anchor" href="#r-packages"><i class="fas fa-link"></i></a>
 </h2>
-<p>The classic on crossed random effects is <a href="https://doi.org/10.1016/j.jml.2007.12.005">Baayen, Davidson, and Bates (2008)</a>.</p>
-<p>On specifying random effects structure, see <a href="https://doi.org/10.1016/j.jml.2012.11.001">Barr, Levy, Scheepers, and Tily (2013)</a>. <a href="https://doi.org/10.3389/fpsyg.2013.00328">Barr (2013)</a> discusses factorial designs. <a href="https://doi.org/10.1016/j.jml.2017.01.001">Matuschek et al. (2017)</a> argue against the 'keep it maximal' view and for data-driven random effects.</p>
-<p>For a recent tutorial on simulating data with crossed random factors of subjects and stimuli, check out <a href="https://doi.org/10.1177%2F2515245920965119">Debruine and Barr (2021)</a>.</p>
+<ul>
+<li>The <strong><a href="https://github.com/pitakakariki/simr">simr</a></strong> package <span class="citation">(Green &amp; MacLeod, <a href="references-and-further-reading.html#ref-Green_2016" role="doc-biblioref">2016</a>)</span>
+</li>
+<li>The <a href="https://debruine.github.io/faux/"><strong><code>{faux}</code></strong> package</a> for factorial simulation</li>
+</ul>
 </div>
-<div id="references" class="section level2" number="1.3">
+<div id="references" class="section level2" number="3.3">
 <h2>
-<span class="header-section-number">1.3</span> References<a class="anchor" aria-label="anchor" href="#references"><i class="fas fa-link"></i></a>
+<span class="header-section-number">3.3</span> References<a class="anchor" aria-label="anchor" href="#references"><i class="fas fa-link"></i></a>
 </h2>
 
+<div id="refs" class="references hanging-indent">
+<div id="ref-Brysbaert_Stevens_2018">
+<p>Brysbaert, M., &amp; Stevens, M. (2018). Power analysis and effect size in mixed effects models: A tutorial. <em>Journal of Cognition</em>, <em>1</em>(1).</p>
+</div>
+<div id="ref-DeBruine_Barr_2021">
+<p>DeBruine, L. M., &amp; Barr, D. J. (2021). Understanding mixed-effects models through data simulation. <em>Advances in Methods and Practices in Psychological Science</em>, <em>4</em>(1), 2515245920965119.</p>
+</div>
+<div id="ref-Green_2016">
+<p>Green, P., &amp; MacLeod, C. J. (2016). SIMR: An R package for power analysis of generalized linear mixed models by simulation. <em>Methods in Ecology and Evolution</em>, <em>7</em>(4), 493–498.</p>
+</div>
+<div id="ref-Kumle_Vo_Draschkow_2021">
+<p>Kumle, L., Võ, M. L.-H., &amp; Draschkow, D. (2021). Estimating power in (generalized) linear mixed models: An open introduction and tutorial in R. <em>Behavior Research Methods</em>, <em>53</em>(6), 2528–2543.</p>
+</div>
+<div id="ref-Lakens_2022">
+<p>Lakens, D. (2022). Sample size justification. <em>Collabra: Psychology</em>, <em>8</em>(1), 33267. <a href="https://doi.org/https://doi.org/10.1525/collabra.33267">https://doi.org/https://doi.org/10.1525/collabra.33267</a></p>
+</div>
+<div id="ref-Luke_2017">
+<p>Luke, S. G. (2017). Evaluating significance in linear mixed-effects models in R. <em>Behavior Research Methods</em>, <em>49</em>, 1494–1502.</p>
+</div>
+<div id="ref-Westfall_Kenny_Judd_2014">
+<p>Westfall, J., Kenny, D. A., &amp; Judd, C. M. (2014). Statistical power and optimal design in experiments in which samples of participants respond to samples of stimuli. <em>Journal of Experimental Psychology: General</em>, <em>143</em>(5), 2020.</p>
+</div>
+</div>
 </div>
 </div>
 <script>
@@ -204,15 +236,15 @@ $( document ).ready(function() {
   );
 });
 </script><div class="chapter-nav">
-<div class="prev"><a href="index.html">Workshop Overview</a></div>
+<div class="prev"><a href="linear-mixed-effects-modeling.html"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></div>
 <div class="empty"></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
-<li><a class="nav-link" href="#references-and-further-reading"><span class="header-section-number">1</span> References and Further Reading</a></li>
-<li><a class="nav-link" href="#further-reading"><span class="header-section-number">1.1</span> Further reading</a></li>
-<li><a class="nav-link" href="#linear-mixed-effects-models"><span class="header-section-number">1.2</span> Linear mixed-effects models</a></li>
-<li><a class="nav-link" href="#references"><span class="header-section-number">1.3</span> References</a></li>
+<li><a class="nav-link" href="#references-and-further-reading"><span class="header-section-number">3</span> References and Further Reading</a></li>
+<li><a class="nav-link" href="#further-reading"><span class="header-section-number">3.1</span> Further reading</a></li>
+<li><a class="nav-link" href="#r-packages"><span class="header-section-number">3.2</span> R packages</a></li>
+<li><a class="nav-link" href="#references"><span class="header-section-number">3.3</span> References</a></li>
 </ul>
 
       <div class="book-extra">
@@ -238,6 +270,34 @@ $( document ).ready(function() {
   </div>
 
 </div></div>
-</footer>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
 </body>
 </html>

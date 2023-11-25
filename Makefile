@@ -8,7 +8,7 @@ CFILE=$(shell find ./ -type f -regextype posix-extended -regex '$(REGEX)')
 book : clean 
 	Rscript -e 'bookdown::render_book("index.Rmd", output_dir = "$(htarg)")'
 # cp -r ../slides/ docs/
-	zip -r docs/amlap-asia-powersimulation.zip docs/
+	zip -r docs/amlap-asia-power-simulation.zip docs/
 
 clean :
 	Rscript -e 'bookdown::clean_book(TRUE)'
