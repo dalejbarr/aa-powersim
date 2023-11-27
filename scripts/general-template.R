@@ -1,9 +1,3 @@
-# Building blocks of simulation
-
-The R code below offers a general template for Monte Carlo power estimation for linear mixed-effects models.
-
-
-```{.r .fold-hide}
 #############################
 ## ADD-ON PACKAGES
 
@@ -125,9 +119,3 @@ message("results saved to '", outfile, "'")
 
 ## or if you want to save *EVERYTHING* (and have a very large file):
 ## saveRDS(allsets, outfile)
-```
-
-## Writing custom functions
-
-## Handling errors or warnings
-

@@ -1,6 +1,14 @@
 ---
 title: "1. Building blocks for Monte Carlo simulation"
 author: "Dale Barr"
+title-slide-attributes:
+  data-background-image: ../img/titlescreen.png
+format: 
+  revealjs:
+    code-line-numbers: true
+knitr:
+  opts_chunk:
+    echo: true
 ---
 
 ## Planning experiments
@@ -12,6 +20,19 @@ author: "Dale Barr"
 ## Monte Carlo simulation
 
 ## Writing custom functions
+
+```{r}
+```
+
+## A general template
+
+```{r}
+#| eval: false
+gen_data <- function(n) {
+  ## TODO: replace with something more interesting
+  tibble(sub_id = seq_len(n), dv = rnorm(n))
+}
+```
 
 ## Data structures
 

@@ -1,6 +1,6 @@
 # Linear mixed-effects modeling
 
-For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items.  Let's imagine that the experiment involves lexical decisions to a set of words (e.g., is "PINT" a word or nonword?), and the dependent variable is response time (in milliseconds), and the independent variable is word type (noun vs verb).  We want to treat both subjects and words as random factors (so that we can generalize to the population of events where subjects encounter words).
+For this first section, we will learn to simulate data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items.  Let's imagine that the experiment involves lexical decisions to a set of words (e.g., is "PINT" a word or nonword?), and the dependent variable is response time (in milliseconds), and the independent variable is word type (noun vs verb).  We want to treat both subjects and words as random factors (so that we can generalize to the population of events where subjects encounter words).
 
 The general linear model for our study is:
 
@@ -31,16 +31,21 @@ $$\Sigma = \left(\begin{array}{cc}{\tau_{00}}^2 & \rho\tau_{00}\tau_{11} \\ \rho
 
 $$I_{0i} \sim N(0, \omega_{00}^2)$$
 
-## Set up the environment and define the parameters for the DGP
+## Generate data
+
+### Set up the environment 
 
 If you want to get the same results as everyone else for this exercise, then we all should seed the random number generator with the same value.  While we're at it, let's load in the packages we need.
 
 ```{r, message=FALSE}
 library("lme4")
 library("tidyverse")
+requireNamespace("MASS") ## make sure it's there but don't load it
 
 set.seed(1451)
 ```
+
+### Define the parameters for the DGP {#dgp}
 
 Now let's define the parameters for the DGP (data generating process).
 
@@ -50,7 +55,6 @@ nitem <- 50  # must be an even number
 
 mu <- 800 # grand mean
 eff <- 80 # 80 ms difference
-effc <- c(-.5, .5) # deviation codes
 
 iri_sd <- 80 # by-item random intercept sd (omega_00)
 
@@ -72,7 +76,7 @@ You'll create three tables:
 
 Then you will merge together the information in the three tables, and calculate the response variable according to the model formula above.
 
-## Generate a sample of stimuli
+### Generate a sample of stimuli
 
 Let's randomly generate our `r nitem` items. Create a tibble called `item` like the one below, where `iri` are the by-item random intercepts (drawn from a normal distribution with variance $\omega_{00}^2$ = `iri_sd^2`).  Half of the words are of type NOUN (`cond` = -.5) and half of type VERB (`cond` = .5).
 
@@ -105,7 +109,7 @@ items
 
 `r unhide()`
 
-## Generate a sample of subjects
+### Generate a sample of subjects
 
 To generate the by-subject random effects, you will need to generate data from a *bivariate normal distribution*.  To do this, we will use the function `MASS::mvrnorm()`.
 
@@ -122,10 +126,12 @@ Here is an example of how to use `MASS::mvrnorm()` to randomly generate correlat
 mx <- rbind(c(1, -.6),
             c(-.6, 1))
 
-biv_data <- MASS::mvrnorm(1000, mu = c(0, 0), Sigma = mx)
+biv_data <- MASS::mvrnorm(1000,
+                          mu = c(V1 = 0, V2 = 0),
+                          Sigma = mx)
 
 ## look at biv_data
-ggplot(as.tibble(biv_data), aes(V1, V2)) +
+ggplot(as_tibble(biv_data), aes(V1, V2)) +
   geom_point()
 ```
 
@@ -133,14 +139,15 @@ Your subjects table should look like this:
 
 `r hide("Click to reveal full table")`
 
-```{r, echo=FALSE}
+```{r subj-table, echo=FALSE}
 mx <- rbind(c(sri_sd^2,               rcor * sri_sd * srs_sd),
             c(rcor * sri_sd * srs_sd, srs_sd^2)) # look at it
 
-by_subj_rfx <- MASS::mvrnorm(nsubj, mu = c(0, 0), Sigma = mx)
+by_subj_rfx <- MASS::mvrnorm(nsubj,
+                             mu = c(sri = 0, srs = 0),
+                             Sigma = mx)
 
-subjects <- as.tibble(by_subj_rfx) |>
-  rename(sri = V1, srs = V2) |>
+subjects <- as_tibble(by_subj_rfx) |>
   mutate(subj_id = row_number()) |>
   select(subj_id, everything())
 ```
@@ -150,3 +157,271 @@ subjects |> print(n = +Inf)
 ```
 
 `r unhide()`
+
+`r hide("Hint 1")`
+
+recall that:
+
+|          |                                                |
+|----------|------------------------------------------------|
+| `sri_sd` | by-subject random intercept standard deviation |
+| `srs_sd` | by-subject random slope standard deviation     |
+| `r`      | correlation between intercept and slope        |
+
+`r unhide()`
+
+`r hide("Hint 2 (covariance)")`
+
+```
+covariance = r * sri_sd * srs_sd
+```
+
+`r unhide()`
+
+`r hide("Hint 3 (building a matrix)")`
+
+```{r, eval=FALSE}
+## bind together rows
+rbind(
+  c(sri_sd^2,            r * sri_sd * srs_sd),
+  c(r * sri_sd * srs_sd,            srs_sd^2)  )
+
+## see also `matrix()`
+```
+
+`r unhide()`
+
+`r hide("Hint 4: (matrix to tibble)")`
+
+`as_tibble(mx)`
+
+`r unhide()`
+
+`r hide("Solution")`
+
+```{r, eval=FALSE, ref.label="subj-table"}
+```
+
+`r unhide()`
+
+### Generate a sample of encounters (trials)
+
+Each trial is an *encounter* between a particular subject and stimulus.  In this experiment, each subject will see each stimulus.  Generate a table `trials` that lists the encounters in the experiments. Note: each participant encounters each stimulus item once.  Use the `crossing()` function to create all possible encounters.
+
+Now apply this example to generate the table below, where `err` is the residual term, drawn from \(N \sim \left(0, \sigma^2\right)\), where \(\sigma\) is `err_sd`.
+
+```{r trials, include=FALSE}
+trials <- crossing(subj_id = subjects |> pull(subj_id),
+                   item_id = items |> pull(item_id)) |>
+  mutate(err = rnorm(n = nsubj * nitem,
+                     mean = 0, sd = err_sd))  
+```
+
+```{r show-trials, echo=FALSE}
+trials
+```
+
+`r hide("Solution")`
+
+```{r, eval=FALSE, ref.label="trials"}
+```
+
+`r unhide()`
+
+### Join `subjects`, `items`, and `trials`
+
+Merge the information in `subjects`, `items`, and `trials` to create the full dataset `dat`, which looks like this:
+
+```{r make-dat, include=FALSE}
+dat_sim <- subjects |>
+  inner_join(trials, "subj_id") |>
+  inner_join(items, "item_id") |>
+  arrange(subj_id, item_id) |>
+  select(subj_id, item_id, sri, iri, srs, cond, err)
+```
+
+```{r show-dat, echo=FALSE}
+dat_sim
+```
+
+Note: this is the full **decomposition table** for this model.
+
+`r hide("Solution")`
+
+```{r dat-solution, ref.label="make-dat", eval=FALSE}
+```
+
+`r unhide()`
+
+### Create the response variable {#addy}
+
+Add the response variable `Y` to dat according to the model formula:
+
+$$Y_{si} = \beta_0 + S_{0s} + I_{0i} + (\beta_1 + S_{1s})X_{i} + e_{si}$$
+
+so that the resulting table (`dat2`) looks like this:
+
+```{r add-y, include=FALSE}
+dat_sim2 <- dat_sim |>
+  mutate(Y = mu + sri + iri + (eff + srs) * cond + err) |>
+  select(subj_id, item_id, Y, everything())
+```
+
+```{r show-add-y, echo=FALSE}
+dat_sim2
+```
+
+`r hide("Solution")`
+
+```{r show-y-sol, eval=FALSE, ref.label="add-y"}
+```
+
+`r unhide()`
+
+### Fitting the model
+
+Now that you have created simulated data, estimate the model using `lme4::lmer()`, and run `summary()`.
+
+`r hide("Solution")`
+
+```{r fit-model}
+mod_sim <- lmer(Y ~ cond + (1 + cond | subj_id) + (1 | item_id),
+                dat_sim2, REML = FALSE)
+
+summary(mod_sim, corr = FALSE)
+```
+
+`r unhide()`
+
+Now see if you can identify the data generating parameters in the output of `summary()`.
+
+```{r recover-parms, include=FALSE}
+srfx <- attr(VarCorr(mod_sim)$subj_id, "stddev")
+irfx <- attr(VarCorr(mod_sim)$item_id, "stddev")
+rc <- attr(VarCorr(mod_sim)$subj_id, "correlation")[1, 2]
+
+res <- attr(VarCorr(mod_sim), "sc")
+
+ffx <- fixef(mod_sim)
+```
+
+First, try to find $\beta_0$ and $\beta_1$.
+
+`r hide("Solution (fixed effects)")`
+
+```{r show-betas, echo=FALSE}
+tribble(~parameter, ~variable, ~input, ~estimate,
+        "$\\hat{\\beta}_0$", "`mu`", mu, round(ffx[1], 3),
+        "$\\hat{\\beta}_1$", "`eff`", eff, round(ffx[2], 3)) |>
+  knitr::kable(escape = FALSE)
+```
+
+`r unhide()`
+
+Now try to find estimates of random effects parameters $\tau_{00}$, $\tau_{11}$, $\rho$, $\omega_{00}$, and $\sigma$.
+
+`r hide("Solution (random effects)")`
+
+```{r show-ranef, echo=FALSE}
+tribble(~parameter, ~variable, ~input, ~estimate,
+        "$\\hat{\\tau}_{00}$", "`sri_sd`", sri_sd, round(srfx[1], 3),
+        "$\\hat{\\tau}_{11}$", "`srs_sd`", srs_sd, round(srfx[2], 3),
+        "$\\hat{\\rho}$", "`rcor`", rcor, round(rc, 3),
+        "$\\hat{\\omega}_{00}$", "`iri_sd`", iri_sd, round(irfx[1], 3),
+        "$\\hat{\\sigma}$", "`err_sd`", err_sd, round(res, 3)) |>
+  knitr::kable()
+```
+
+`r unhide()`
+
+## Building the simulation script
+
+Now that we've learned to simulated data with crossed random factors of subjects and stimuli, let's build a script to run the simulation. You might want to start a fresh R script for this (and load in tidyverse + lme4 at the top).
+
+### Wrapping the code into `generate_data()`
+
+Now wrap the code you created from section \@ref(dgp) to \@ref(addy) into a single function `generate_data()` that takes three arguments: `eff` (effect size), `nsubj` (number of subjects), `nitem` (number of items), and then all the remaining DGP paramemters in this order: `mu`, `iri_sd`, `sri_sd`, `srs_sd`, `rcor`, and `err_sd`. These final parameters should all be given the default values shown in section \@ref(dgp).
+
+The code should return a table with columns `subj_id`, `item_id`, `cond`, and `Y`.
+
+Here is 'starter' code that does nothing. 
+
+```{r starter-code, eval=FALSE}
+generate_data <- function(eff, nsubj, nitem,
+                          mu = 800, iri_sd = 80, sri_sd = 100,
+                          srs_sd = 40, rcor = .2, err_sd = 200) {
+
+  ## 1. TODO generate sample of stimuli
+  ## 2. TODO generate sample of subjects
+  ## 3. TODO generate trials, adding in error
+  ## 4. TODO join the three tables together
+  ## 5. TODO create the response variable
+
+  ## TODO replace this placeholder table with your result
+  tibble(subj_id = integer(0),
+         item_id = integer(0),
+         cond = double(0),
+         Y = double(0))
+}
+
+## test it out
+generate_data(0, 50, 10)
+```
+
+`r hide("Solution")`
+
+```{r gen-data}
+generate_data <- function(eff, nsubj, nitem,
+                          mu = 800, iri_sd = 80, sri_sd = 100,
+                          srs_sd = 40, rcor = .2, err_sd = 200) {
+
+  ## 1. generate sample of stimuli
+  items <- tibble(item_id = 1:nitem,
+                  cond = rep(c(-.5, .5), times = nitem / 2),
+                  iri = rnorm(nitem, 0, sd = iri_sd))
+  
+  ## 2. generate sample of subjects
+  mx <- rbind(c(sri_sd^2,               rcor * sri_sd * srs_sd),
+              c(rcor * sri_sd * srs_sd, srs_sd^2)) # look at it
+
+  by_subj_rfx <- MASS::mvrnorm(nsubj,
+                               mu = c(sri = 0, srs = 0),
+                               Sigma = mx)
+
+  subjects <- as_tibble(by_subj_rfx) |>
+    mutate(subj_id = row_number()) |>
+    select(subj_id, everything())
+  
+  ## 3. generate trials, adding in error
+  trials <- crossing(subj_id = subjects |> pull(subj_id),
+                     item_id = items |> pull(item_id)) |>
+    mutate(err = rnorm(n = nsubj * nitem,
+                       mean = 0, sd = err_sd))
+  
+  ## 4. join the three tables together, AND
+  ## 5. create the response variable
+  subjects |>
+    inner_join(trials, "subj_id") |>
+    inner_join(items, "item_id") |>
+    mutate(Y = mu + sri + iri + (eff + srs) * cond + err) |>
+    select(subj_id, item_id, cond, Y)
+}
+```
+
+`r unhide()`
+
+### Re-write `analyze_data()`
+
+Now let's re-write our `analyze_data()` function for this design.
+
+```{r analyze-stub}
+analyze_data <- function(dat) {
+  suppressWarnings( # ignore non-convergence
+    suppressMessages({ # ignore 'singular fit'
+      ## TODO: something with lmer()
+    }))
+}
+```
+
+### Re-write `extract_stats()`
+

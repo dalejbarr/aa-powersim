@@ -1,5 +1,11 @@
 # Building blocks of simulation
 
+The R code below offers a general template for Monte Carlo power estimation for linear mixed-effects models.
+
+```{r, class.source="fold-hide", file="scripts/general-template.R", eval=FALSE}
+```
+
 ## Writing custom functions
 
 ## Handling errors or warnings
+

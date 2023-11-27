@@ -6,15 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models</title>
 <meta name="author" content="Dale J. Barr">
-<meta name="description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<meta name="description" content="For this first section, we will learn to simulate data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's...">
 <meta name="generator" content="bookdown 0.36 with bs4_book()">
 <meta property="og:title" content="Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://dalejbarr.github.io/aa-powersim/linear-mixed-effects-modeling.html">
-<meta property="og:description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<meta property="og:description" content="For this first section, we will learn to simulate data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 2 Linear mixed-effects modeling | Simulating power for mixed-effects models">
-<meta name="twitter:description" content="For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items....">
+<meta name="twitter:description" content="For this first section, we will learn to simulate data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's...">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
 <script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.0/transition.js"></script><script src="libs/bs3compat-0.6.0/tabs.js"></script><script src="libs/bs3compat-0.6.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
@@ -67,7 +67,7 @@
 <h1>
 <span class="header-section-number">2</span> Linear mixed-effects modeling<a class="anchor" aria-label="anchor" href="#linear-mixed-effects-modeling"><i class="fas fa-link"></i></a>
 </h1>
-<p>For this first set of exercises, we will generate simulated data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's imagine that the experiment involves lexical decisions to a set of words (e.g., is "PINT" a word or nonword?), and the dependent variable is response time (in milliseconds), and the independent variable is word type (noun vs verb). We want to treat both subjects and words as random factors (so that we can generalize to the population of events where subjects encounter words).</p>
+<p>For this first section, we will learn to simulate data corresponding to an experiment with a single, two-level factor (independent variable) that is within-subjects and between-items. Let's imagine that the experiment involves lexical decisions to a set of words (e.g., is "PINT" a word or nonword?), and the dependent variable is response time (in milliseconds), and the independent variable is word type (noun vs verb). We want to treat both subjects and words as random factors (so that we can generalize to the population of events where subjects encounter words).</p>
 <p>The general linear model for our study is:</p>
 <p><span class="math display">\[Y_{si} = \beta_0 + S_{0s} + I_{0i} + (\beta_1 + S_{1s})X_{i} + e_{si}\]</span></p>
 <p>where:</p>
@@ -119,24 +119,33 @@
 <p><span class="math display">\[\Sigma = \left(\begin{array}{cc}{\tau_{00}}^2 &amp; \rho\tau_{00}\tau_{11} \\ \rho\tau_{00}\tau_{11} &amp; {\tau_{11}}^2 \\ \end{array}\right) \]</span></p>
 <p><strong>Items</strong></p>
 <p><span class="math display">\[I_{0i} \sim N(0, \omega_{00}^2)\]</span></p>
-<div id="set-up-the-environment-and-define-the-parameters-for-the-dgp" class="section level2" number="2.1">
+<div id="generate-data" class="section level2" number="2.1">
 <h2>
-<span class="header-section-number">2.1</span> Set up the environment and define the parameters for the DGP<a class="anchor" aria-label="anchor" href="#set-up-the-environment-and-define-the-parameters-for-the-dgp"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.1</span> Generate data<a class="anchor" aria-label="anchor" href="#generate-data"><i class="fas fa-link"></i></a>
 </h2>
+<div id="set-up-the-environment" class="section level3" number="2.1.1">
+<h3>
+<span class="header-section-number">2.1.1</span> Set up the environment<a class="anchor" aria-label="anchor" href="#set-up-the-environment"><i class="fas fa-link"></i></a>
+</h3>
 <p>If you want to get the same results as everyone else for this exercise, then we all should seed the random number generator with the same value. While we're at it, let's load in the packages we need.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/lme4/lme4/">"lme4"</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://tidyverse.tidyverse.org">"tidyverse"</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="st">"MASS"</span><span class="op">)</span> <span class="co">## make sure it's there but don't load it</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="dgp" class="section level3" number="2.1.2">
+<h3>
+<span class="header-section-number">2.1.2</span> Define the parameters for the DGP<a class="anchor" aria-label="anchor" href="#dgp"><i class="fas fa-link"></i></a>
+</h3>
 <p>Now let's define the parameters for the DGP (data generating process).</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># number of subjects</span></span>
 <span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fl">50</span>  <span class="co"># must be an even number</span></span>
 <span></span>
 <span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fl">800</span> <span class="co"># grand mean</span></span>
 <span><span class="va">eff</span> <span class="op">&lt;-</span> <span class="fl">80</span> <span class="co"># 80 ms difference</span></span>
-<span><span class="va">effc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span> <span class="co"># deviation codes</span></span>
 <span></span>
 <span><span class="va">iri_sd</span> <span class="op">&lt;-</span> <span class="fl">80</span> <span class="co"># by-item random intercept sd (omega_00)</span></span>
 <span></span>
@@ -169,10 +178,10 @@
 </table></div>
 <p>Then you will merge together the information in the three tables, and calculate the response variable according to the model formula above.</p>
 </div>
-<div id="generate-a-sample-of-stimuli" class="section level2" number="2.2">
-<h2>
-<span class="header-section-number">2.2</span> Generate a sample of stimuli<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-stimuli"><i class="fas fa-link"></i></a>
-</h2>
+<div id="generate-a-sample-of-stimuli" class="section level3" number="2.1.3">
+<h3>
+<span class="header-section-number">2.1.3</span> Generate a sample of stimuli<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-stimuli"><i class="fas fa-link"></i></a>
+</h3>
 <p>Let's randomly generate our 50 items. Create a tibble called <code>item</code> like the one below, where <code>iri</code> are the by-item random intercepts (drawn from a normal distribution with variance <span class="math inline">\(\omega_{00}^2\)</span> = <code>iri_sd^2</code>). Half of the words are of type NOUN (<code>cond</code> = -.5) and half of type VERB (<code>cond</code> = .5).</p>
 <pre><code>## # A tibble: 50 × 3
 ##    item_id  cond     iri
@@ -204,53 +213,506 @@ Hint (iri)
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
 <span>                cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
-<div id="generate-a-sample-of-subjects" class="section level2" number="2.3">
-<h2>
-<span class="header-section-number">2.3</span> Generate a sample of subjects<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-subjects"><i class="fas fa-link"></i></a>
-</h2>
+<div id="generate-a-sample-of-subjects" class="section level3" number="2.1.4">
+<h3>
+<span class="header-section-number">2.1.4</span> Generate a sample of subjects<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-subjects"><i class="fas fa-link"></i></a>
+</h3>
 <p>To generate the by-subject random effects, you will need to generate data from a <em>bivariate normal distribution</em>. To do this, we will use the function <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
 <div class="warning">
 <p>Do not run <code><a href="http://www.stats.ox.ac.uk/pub/MASS4/">library("MASS")</a></code> just to get this one function, because <code>MASS</code> has a function <code><a href="https://dplyr.tidyverse.org/reference/select.html">select()</a></code> that will overwrite the tidyverse version. Since all we want from MASS is the <code>mvrnorm()</code> function, we can just access it directly by the <code>pkgname::function</code> syntax, i.e., <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
 </div>
 <p>Here is an example of how to use <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code> to randomly generate correlated data (with <span class="math inline">\(r = -.6\)</span>) for a simple bivariate case. In this example, the variances of each of the two variables is defined as 1, such that the covariance becomes equal to the correlation between the variables.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## mx is the variance-covariance matrix</span></span>
 <span><span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">.6</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.6</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">biv_data</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span><span class="op">(</span><span class="fl">1000</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
+<span><span class="va">biv_data</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span><span class="op">(</span><span class="fl">1000</span>,</span>
+<span>                          mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>V1 <span class="op">=</span> <span class="fl">0</span>, V2 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>                          Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## look at biv_data</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/deprecated.html">as.tibble</a></span><span class="op">(</span><span class="va">biv_data</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">V1</span>, <span class="va">V2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">biv_data</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">V1</span>, <span class="va">V2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## Warning: `as.tibble()` was deprecated in tibble 2.0.0.
-## ℹ Please use `as_tibble()` instead.
-## ℹ The signature and semantics have changed, see `?as_tibble`.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-## generated.</code></pre>
-<pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if
-## `.name_repair` is omitted as of tibble 2.0.0.
-## ℹ Using compatibility `.name_repair`.
-## ℹ The deprecated feature was likely used in the tibble package.
-##   Please report the issue at &lt;https://github.com/tidyverse/tibble/issues&gt;.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-## generated.</code></pre>
 <div class="inline-figure"><img src="02_mixed-effects_files/figure-html/unnamed-chunk-5-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Your subjects table should look like this:</p>
 <div class="webex-solution">
 <button>
 Click to reveal full table
 </button>
+<pre><code>## # A tibble: 100 × 3
+##     subj_id      sri      srs
+##       &lt;int&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##   1       1   42.9    25.7   
+##   2       2  -15.3   -28.2   
+##   3       3  -41.4   -30.3   
+##   4       4  -77.1     3.64  
+##   5       5  182.      2.48  
+##   6       6   24.6   -13.3   
+##   7       7    8.92   42.8   
+##   8       8 -101.    -37.2   
+##   9       9  -96.8   -32.7   
+##  10      10  -27.4   -52.6   
+##  11      11  -80.8    -9.06  
+##  12      12   83.8   -40.3   
+##  13      13  134.    -18.9   
+##  14      14 -130.    132.    
+##  15      15  -59.2    -8.42  
+##  16      16 -127.     12.5   
+##  17      17    8.91  -15.3   
+##  18      18  -26.8   -19.0   
+##  19      19   48.0    39.5   
+##  20      20   35.6    28.5   
+##  21      21 -199.    -32.9   
+##  22      22  -41.1    -9.77  
+##  23      23  -29.9     1.02  
+##  24      24   12.0   -24.0   
+##  25      25   20.5     0.0251
+##  26      26   -0.207  47.9   
+##  27      27  -13.7   -77.8   
+##  28      28 -154.     31.5   
+##  29      29  -59.6    67.7   
+##  30      30  -50.6   -27.6   
+##  31      31  125.      9.51  
+##  32      32  111.     13.4   
+##  33      33  -27.0    71.7   
+##  34      34 -140.     -7.69  
+##  35      35  -31.0    18.4   
+##  36      36 -185.     31.4   
+##  37      37   12.8   -65.8   
+##  38      38  -39.7   -51.6   
+##  39      39  -93.9    76.3   
+##  40      40  -63.9   -12.5   
+##  41      41   68.6    -3.47  
+##  42      42  -91.9   -31.8   
+##  43      43 -143.     53.9   
+##  44      44   44.6    48.0   
+##  45      45    5.72   24.2   
+##  46      46   51.3   101.    
+##  47      47 -176.    -47.8   
+##  48      48  -54.0   -23.8   
+##  49      49   26.8    32.3   
+##  50      50   20.4    -9.41  
+##  51      51  122.     -2.03  
+##  52      52 -111.    -16.1   
+##  53      53  266.     16.4   
+##  54      54  -42.1    -6.37  
+##  55      55   -3.47  -30.1   
+##  56      56   94.9    18.0   
+##  57      57  -26.9   -19.9   
+##  58      58  154.     43.0   
+##  59      59  110.    -18.9   
+##  60      60 -167.    -14.9   
+##  61      61 -255.     -1.70  
+##  62      62   95.9   -28.8   
+##  63      63  211.    -78.7   
+##  64      64  -40.7   102.    
+##  65      65 -174.     -1.30  
+##  66      66   42.3    11.0   
+##  67      67 -120.    -94.1   
+##  68      68 -173.     10.0   
+##  69      69 -239.     -7.33  
+##  70      70   28.8   -29.9   
+##  71      71  107.     13.1   
+##  72      72 -114.     -3.12  
+##  73      73 -114.     20.7   
+##  74      74  -23.5   -29.4   
+##  75      75  -77.5    23.9   
+##  76      76  160.     78.6   
+##  77      77 -139.     40.6   
+##  78      78   88.2    31.3   
+##  79      79   -2.36  -24.1   
+##  80      80    6.12    6.91  
+##  81      81  -10.8   -47.2   
+##  82      82   97.5    48.6   
+##  83      83   38.4     5.61  
+##  84      84    7.07  -42.2   
+##  85      85   81.2    17.9   
+##  86      86   52.8    80.4   
+##  87      87  -78.4    16.8   
+##  88      88 -116.     36.9   
+##  89      89  -88.6    18.4   
+##  90      90  -36.9   -12.9   
+##  91      91 -100.    -21.8   
+##  92      92 -114.    -18.9   
+##  93      93   25.9   -45.2   
+##  94      94  173.     52.7   
+##  95      95   18.0   -68.1   
+##  96      96 -112.     43.9   
+##  97      97   20.9    -2.86  
+##  98      98  169.     -2.79  
+##  99      99 -101.     -3.88  
+## 100     100  106.    -27.6</code></pre>
 </div>
+<div class="webex-solution">
+<button>
+Hint 1
+</button>
+<p>recall that:</p>
+<div class="inline-table"><table class="table table-sm"><tbody>
+<tr class="odd">
+<td><code>sri_sd</code></td>
+<td>by-subject random intercept standard deviation</td>
+</tr>
+<tr class="even">
+<td><code>srs_sd</code></td>
+<td>by-subject random slope standard deviation</td>
+</tr>
+<tr class="odd">
+<td><code>r</code></td>
+<td>correlation between intercept and slope</td>
+</tr>
+</tbody></table></div>
+</div>
+<div class="webex-solution">
+<button>
+Hint 2 (covariance)
+</button>
+<pre><code>covariance = r * sri_sd * srs_sd</code></pre>
+</div>
+<div class="webex-solution">
+<button>
+Hint 3 (building a matrix)
+</button>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## bind together rows</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">sri_sd</span><span class="op">^</span><span class="fl">2</span>,            <span class="va">r</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">r</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span>,            <span class="va">srs_sd</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co">## see also `matrix()`</span></span></code></pre></div>
+</div>
+<div class="webex-solution">
+<button>
+Hint 4: (matrix to tibble)
+</button>
+<p><code>as_tibble(mx)</code></p>
+</div>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">sri_sd</span><span class="op">^</span><span class="fl">2</span>,               <span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span>, <span class="va">srs_sd</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># look at it</span></span>
+<span></span>
+<span><span class="va">by_subj_rfx</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span><span class="op">(</span><span class="va">nsubj</span>,</span>
+<span>                             mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>sri <span class="op">=</span> <span class="fl">0</span>, srs <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>                             Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div id="generate-a-sample-of-encounters-trials" class="section level3" number="2.1.5">
+<h3>
+<span class="header-section-number">2.1.5</span> Generate a sample of encounters (trials)<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-encounters-trials"><i class="fas fa-link"></i></a>
+</h3>
+<p>Each trial is an <em>encounter</em> between a particular subject and stimulus. In this experiment, each subject will see each stimulus. Generate a table <code>trials</code> that lists the encounters in the experiments. Note: each participant encounters each stimulus item once. Use the <code><a href="https://tidyr.tidyverse.org/reference/expand.html">crossing()</a></code> function to create all possible encounters.</p>
+<p>Now apply this example to generate the table below, where <code>err</code> is the residual term, drawn from <span class="math inline">\(N \sim \left(0, \sigma^2\right)\)</span>, where <span class="math inline">\(\sigma\)</span> is <code>err_sd</code>.</p>
+<pre><code>## # A tibble: 5,000 × 3
+##    subj_id item_id    err
+##      &lt;int&gt;   &lt;int&gt;  &lt;dbl&gt;
+##  1       1       1  -64.3
+##  2       1       2  585. 
+##  3       1       3  127. 
+##  4       1       4  182. 
+##  5       1       5  -47.6
+##  6       1       6   22.0
+##  7       1       7 -265. 
+##  8       1       8  604. 
+##  9       1       9  249. 
+## 10       1      10 -147. 
+## # ℹ 4,990 more rows</code></pre>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand.html">crossing</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
+<span>                   item_id <span class="op">=</span> <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
+<span>                     mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>  </span></code></pre></div>
+</div>
+</div>
+<div id="join-subjects-items-and-trials" class="section level3" number="2.1.6">
+<h3>
+<span class="header-section-number">2.1.6</span> Join <code>subjects</code>, <code>items</code>, and <code>trials</code><a class="anchor" aria-label="anchor" href="#join-subjects-items-and-trials"><i class="fas fa-link"></i></a>
+</h3>
+<p>Merge the information in <code>subjects</code>, <code>items</code>, and <code>trials</code> to create the full dataset <code>dat</code>, which looks like this:</p>
+<pre><code>## # A tibble: 5,000 × 7
+##    subj_id item_id   sri     iri   srs  cond    err
+##      &lt;int&gt;   &lt;int&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1       1       1  42.9 -217.    25.7  -0.5  -64.3
+##  2       1       2  42.9  -77.9   25.7   0.5  585. 
+##  3       1       3  42.9  -96.9   25.7  -0.5  127. 
+##  4       1       4  42.9   40.4   25.7   0.5  182. 
+##  5       1       5  42.9   28.0   25.7  -0.5  -47.6
+##  6       1       6  42.9  160.    25.7   0.5   22.0
+##  7       1       7  42.9   -4.45  25.7  -0.5 -265. 
+##  8       1       8  42.9  -83.9   25.7   0.5  604. 
+##  9       1       9  42.9 -121.    25.7  -0.5  249. 
+## 10       1      10  42.9  -12.1   25.7   0.5 -147. 
+## # ℹ 4,990 more rows</code></pre>
+<p>Note: this is the full <strong>decomposition table</strong> for this model.</p>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat_sim</span> <span class="op">&lt;-</span> <span class="va">subjects</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">sri</span>, <span class="va">iri</span>, <span class="va">srs</span>, <span class="va">cond</span>, <span class="va">err</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div id="addy" class="section level3" number="2.1.7">
+<h3>
+<span class="header-section-number">2.1.7</span> Create the response variable<a class="anchor" aria-label="anchor" href="#addy"><i class="fas fa-link"></i></a>
+</h3>
+<p>Add the response variable <code>Y</code> to dat according to the model formula:</p>
+<p><span class="math display">\[Y_{si} = \beta_0 + S_{0s} + I_{0i} + (\beta_1 + S_{1s})X_{i} + e_{si}\]</span></p>
+<p>so that the resulting table (<code>dat2</code>) looks like this:</p>
+<pre><code>## # A tibble: 5,000 × 8
+##    subj_id item_id     Y   sri     iri   srs  cond    err
+##      &lt;int&gt;   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1       1       1  509.  42.9 -217.    25.7  -0.5  -64.3
+##  2       1       2 1403.  42.9  -77.9   25.7   0.5  585. 
+##  3       1       3  820.  42.9  -96.9   25.7  -0.5  127. 
+##  4       1       4 1118.  42.9   40.4   25.7   0.5  182. 
+##  5       1       5  770.  42.9   28.0   25.7  -0.5  -47.6
+##  6       1       6 1077.  42.9  160.    25.7   0.5   22.0
+##  7       1       7  520.  42.9   -4.45  25.7  -0.5 -265. 
+##  8       1       8 1416.  42.9  -83.9   25.7   0.5  604. 
+##  9       1       9  918.  42.9 -121.    25.7  -0.5  249. 
+## 10       1      10  737.  42.9  -12.1   25.7   0.5 -147. 
+## # ℹ 4,990 more rows</code></pre>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat_sim2</span> <span class="op">&lt;-</span> <span class="va">dat_sim</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">Y</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div id="fitting-the-model" class="section level3" number="2.1.8">
+<h3>
+<span class="header-section-number">2.1.8</span> Fitting the model<a class="anchor" aria-label="anchor" href="#fitting-the-model"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now that you have created simulated data, estimate the model using <code><a href="https://rdrr.io/pkg/lme4/man/lmer.html">lme4::lmer()</a></code>, and run <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code>.</p>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">cond</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">cond</span> <span class="op">|</span> <span class="va">subj_id</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">item_id</span><span class="op">)</span>,</span>
+<span>                <span class="va">dat_sim2</span>, REML <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mod_sim</span>, corr <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## Linear mixed model fit by maximum likelihood  ['lmerMod']
+## Formula: Y ~ cond + (1 + cond | subj_id) + (1 | item_id)
+##    Data: dat_sim2
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##  67657.9  67703.6 -33822.0  67643.9     4993 
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.7634 -0.6571 -0.0058  0.6572  3.2204 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr
+##  subj_id  (Intercept) 10283.1  101.41       
+##           cond          993.8   31.52   0.13
+##  item_id  (Intercept)  7397.3   86.01       
+##  Residual             40296.4  200.74       
+## Number of obs: 5000, groups:  subj_id, 100; item_id, 50
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)   784.73      16.09  48.776
+## cond           76.01      25.18   3.019</code></pre>
+</div>
+<p>Now see if you can identify the data generating parameters in the output of <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code>.</p>
+<p>First, try to find <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>.</p>
+<div class="webex-solution">
+<button>
+Solution (fixed effects)
+</button>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">parameter</th>
+<th align="left">variable</th>
+<th align="right">input</th>
+<th align="right">estimate</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><span class="math inline">\(\hat{\beta}_0\)</span></td>
+<td align="left"><code>mu</code></td>
+<td align="right">800</td>
+<td align="right">784.729</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(\hat{\beta}_1\)</span></td>
+<td align="left"><code>eff</code></td>
+<td align="right">80</td>
+<td align="right">76.005</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Now try to find estimates of random effects parameters <span class="math inline">\(\tau_{00}\)</span>, <span class="math inline">\(\tau_{11}\)</span>, <span class="math inline">\(\rho\)</span>, <span class="math inline">\(\omega_{00}\)</span>, and <span class="math inline">\(\sigma\)</span>.</p>
+<div class="webex-solution">
+<button>
+Solution (random effects)
+</button>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th align="left">parameter</th>
+<th align="left">variable</th>
+<th align="right">input</th>
+<th align="right">estimate</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><span class="math inline">\(\hat{\tau}_{00}\)</span></td>
+<td align="left"><code>sri_sd</code></td>
+<td align="right">100.0</td>
+<td align="right">101.405</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(\hat{\tau}_{11}\)</span></td>
+<td align="left"><code>srs_sd</code></td>
+<td align="right">40.0</td>
+<td align="right">31.524</td>
+</tr>
+<tr class="odd">
+<td align="left"><span class="math inline">\(\hat{\rho}\)</span></td>
+<td align="left"><code>rcor</code></td>
+<td align="right">0.2</td>
+<td align="right">0.130</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(\hat{\omega}_{00}\)</span></td>
+<td align="left"><code>iri_sd</code></td>
+<td align="right">80.0</td>
+<td align="right">86.008</td>
+</tr>
+<tr class="odd">
+<td align="left"><span class="math inline">\(\hat{\sigma}\)</span></td>
+<td align="left"><code>err_sd</code></td>
+<td align="right">200.0</td>
+<td align="right">200.740</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div id="building-the-simulation-script" class="section level2" number="2.2">
+<h2>
+<span class="header-section-number">2.2</span> Building the simulation script<a class="anchor" aria-label="anchor" href="#building-the-simulation-script"><i class="fas fa-link"></i></a>
+</h2>
+<p>Now that we've learned to simulated data with crossed random factors of subjects and stimuli, let's build a script to run the simulation. You might want to start a fresh R script for this (and load in tidyverse + lme4 at the top).</p>
+<div id="wrapping-the-code-into-generate_data" class="section level3" number="2.2.1">
+<h3>
+<span class="header-section-number">2.2.1</span> Wrapping the code into <code>generate_data()</code><a class="anchor" aria-label="anchor" href="#wrapping-the-code-into-generate_data"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now wrap the code you created from section <a href="linear-mixed-effects-modeling.html#dgp">2.1.2</a> to <a href="linear-mixed-effects-modeling.html#addy">2.1.7</a> into a single function <code>generate_data()</code> that takes three arguments: <code>eff</code> (effect size), <code>nsubj</code> (number of subjects), <code>nitem</code> (number of items), and then all the remaining DGP paramemters in this order: <code>mu</code>, <code>iri_sd</code>, <code>sri_sd</code>, <code>srs_sd</code>, <code>rcor</code>, and <code>err_sd</code>. These final parameters should all be given the default values shown in section <a href="linear-mixed-effects-modeling.html#dgp">2.1.2</a>.</p>
+<p>The code should return a table with columns <code>subj_id</code>, <code>item_id</code>, <code>cond</code>, and <code>Y</code>.</p>
+<p>Here is 'starter' code that does nothing.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">generate_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>                          <span class="va">mu</span> <span class="op">=</span> <span class="fl">800</span>, <span class="va">iri_sd</span> <span class="op">=</span> <span class="fl">80</span>, <span class="va">sri_sd</span> <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>                          <span class="va">srs_sd</span> <span class="op">=</span> <span class="fl">40</span>, <span class="va">rcor</span> <span class="op">=</span> <span class="fl">.2</span>, <span class="va">err_sd</span> <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">{</span></span>
+<span></span>
+<span>  <span class="co">## 1. TODO generate sample of stimuli</span></span>
+<span>  <span class="co">## 2. TODO generate sample of subjects</span></span>
+<span>  <span class="co">## 3. TODO generate trials, adding in error</span></span>
+<span>  <span class="co">## 4. TODO join the three tables together</span></span>
+<span>  <span class="co">## 5. TODO create the response variable</span></span>
+<span></span>
+<span>  <span class="co">## TODO replace this placeholder table with your result</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>         item_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>         cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">double</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>         Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">double</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co">## test it out</span></span>
+<span><span class="fu">generate_data</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">50</span>, <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">generate_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>                          <span class="va">mu</span> <span class="op">=</span> <span class="fl">800</span>, <span class="va">iri_sd</span> <span class="op">=</span> <span class="fl">80</span>, <span class="va">sri_sd</span> <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>                          <span class="va">srs_sd</span> <span class="op">=</span> <span class="fl">40</span>, <span class="va">rcor</span> <span class="op">=</span> <span class="fl">.2</span>, <span class="va">err_sd</span> <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">{</span></span>
+<span></span>
+<span>  <span class="co">## 1. generate sample of stimuli</span></span>
+<span>  <span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
+<span>                  cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>                  iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## 2. generate sample of subjects</span></span>
+<span>  <span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">sri_sd</span><span class="op">^</span><span class="fl">2</span>,               <span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span><span class="op">)</span>,</span>
+<span>              <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span>, <span class="va">srs_sd</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># look at it</span></span>
+<span></span>
+<span>  <span class="va">by_subj_rfx</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">mvrnorm</a></span><span class="op">(</span><span class="va">nsubj</span>,</span>
+<span>                               mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>sri <span class="op">=</span> <span class="fl">0</span>, srs <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>                               Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## 3. generate trials, adding in error</span></span>
+<span>  <span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand.html">crossing</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
+<span>                     item_id <span class="op">=</span> <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
+<span>                       mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## 4. join the three tables together, AND</span></span>
+<span>  <span class="co">## 5. create the response variable</span></span>
+<span>  <span class="va">subjects</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">cond</span>, <span class="va">Y</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+<div id="re-write-analyze_data" class="section level3" number="2.2.2">
+<h3>
+<span class="header-section-number">2.2.2</span> Re-write <code>analyze_data()</code><a class="anchor" aria-label="anchor" href="#re-write-analyze_data"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now let's re-write our <code>analyze_data()</code> function for this design.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">analyze_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="co"># ignore non-convergence</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html">suppressMessages</a></span><span class="op">(</span><span class="op">{</span> <span class="co"># ignore 'singular fit'</span></span>
+<span>      <span class="co">## TODO: something with lmer()</span></span>
+<span>    <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="re-write-extract_stats" class="section level3" number="2.2.3">
+<h3>
+<span class="header-section-number">2.2.3</span> Re-write <code>extract_stats()</code><a class="anchor" aria-label="anchor" href="#re-write-extract_stats"><i class="fas fa-link"></i></a>
+</h3>
 
+</div>
 </div>
 </div>
 <script>
@@ -376,9 +838,25 @@ $( document ).ready(function() {
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#linear-mixed-effects-modeling"><span class="header-section-number">2</span> Linear mixed-effects modeling</a></li>
-<li><a class="nav-link" href="#set-up-the-environment-and-define-the-parameters-for-the-dgp"><span class="header-section-number">2.1</span> Set up the environment and define the parameters for the DGP</a></li>
-<li><a class="nav-link" href="#generate-a-sample-of-stimuli"><span class="header-section-number">2.2</span> Generate a sample of stimuli</a></li>
-<li><a class="nav-link" href="#generate-a-sample-of-subjects"><span class="header-section-number">2.3</span> Generate a sample of subjects</a></li>
+<li>
+<a class="nav-link" href="#generate-data"><span class="header-section-number">2.1</span> Generate data</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#set-up-the-environment"><span class="header-section-number">2.1.1</span> Set up the environment</a></li>
+<li><a class="nav-link" href="#dgp"><span class="header-section-number">2.1.2</span> Define the parameters for the DGP</a></li>
+<li><a class="nav-link" href="#generate-a-sample-of-stimuli"><span class="header-section-number">2.1.3</span> Generate a sample of stimuli</a></li>
+<li><a class="nav-link" href="#generate-a-sample-of-subjects"><span class="header-section-number">2.1.4</span> Generate a sample of subjects</a></li>
+<li><a class="nav-link" href="#generate-a-sample-of-encounters-trials"><span class="header-section-number">2.1.5</span> Generate a sample of encounters (trials)</a></li>
+<li><a class="nav-link" href="#join-subjects-items-and-trials"><span class="header-section-number">2.1.6</span> Join subjects, items, and trials</a></li>
+<li><a class="nav-link" href="#addy"><span class="header-section-number">2.1.7</span> Create the response variable</a></li>
+<li><a class="nav-link" href="#fitting-the-model"><span class="header-section-number">2.1.8</span> Fitting the model</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#building-the-simulation-script"><span class="header-section-number">2.2</span> Building the simulation script</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#wrapping-the-code-into-generate_data"><span class="header-section-number">2.2.1</span> Wrapping the code into generate_data()</a></li>
+<li><a class="nav-link" href="#re-write-analyze_data"><span class="header-section-number">2.2.2</span> Re-write analyze_data()</a></li>
+<li><a class="nav-link" href="#re-write-extract_stats"><span class="header-section-number">2.2.3</span> Re-write extract_stats()</a></li>
+</ul>
+</li>
 </ul>
 
       <div class="book-extra">
@@ -396,7 +874,7 @@ $( document ).ready(function() {
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Simulating power for mixed-effects models</strong>" was written by Dale J. Barr. It was last built on 2023-11-25.</p>
+    <p>"<strong>Simulating power for mixed-effects models</strong>" was written by Dale J. Barr. It was last built on 2023-11-27.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
