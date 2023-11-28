@@ -1,7 +1,7 @@
 --- 
 title: "Simulating power for mixed-effects models"
 author: "Dale J. Barr"
-date: "2023-11-27"
+date: "2023-11-28"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [refs.bib, packages.bib]
@@ -30,15 +30,12 @@ Two pre-requisites for the workshop are: (1) basic understanding of linear regre
 ## Workshop plan {-}
 
 - *Part 1* (9:00-12:00): **Building blocks of simulation**
-  - writing custom functions
-  - data structures
-  - iteration 
-  - handling errors and warnings
 
-- *Part 2* (14:00-17:00): **Mixed-effects modeling**
-  - understanding the data generating process (DGP)
-    - sleepstudy data
-	- data with crossed random effects
+  Provides an overview of critical programming skills for Monte Carlo simulation.
+
+- *Part 2* (14:00-17:00): **Simulating power in linear mixed-effects models**
+
+  Conceptual introduction to the data generating process (DGP) behind many models in psycholinguistics, and instructions on how to adapt the script generated in Part 1 to a multilevel context.
 
 ## Notes on these materials {-}
 

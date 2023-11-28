@@ -19,4 +19,3 @@ Check out the [online textbooks](https://psyteachr.github.io/) and resources tha
 
 ## References
 
-

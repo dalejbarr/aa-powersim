@@ -34,7 +34,7 @@ extract_stats <- function(mobj) {
   tibble(sing = isSingular(mobj),
          conv = check_converged(mobj),
          estimate = fixef(mobj)[1],
-         stderr = sqrt(diag(vcov(mobj))),
+         stderr = sqrt(diag(vcov(mobj)))[1],
          tval = estimate / stderr,
          pval = 2 * (1 - pnorm(abs(tval))))
 }
@@ -49,13 +49,15 @@ check_converged <- function(mobj) {
   is.null(sm$optinfo$conv$lme4$messages)
 }
 
-full_results <- function(x) {
+full_results <- function(x, alpha = .05) {
+  ## after completing all the Monte Carlo runs for a set,
+  ## calculate statistics
   x |>
     select(run_id, stats) |>
     unnest(stats) |>
     summarize(n_sing = sum(sing),
               n_unconv = sum(!conv),
-              n_sig = sum(pval < .05),
+              n_sig = sum(pval < alpha),
               N = n())
 }
 
@@ -115,7 +117,8 @@ outfile <- "power-simulation-results.rds"
 
 saveRDS(pow_result, outfile)
 
-message("results saved to '", outfile, "'")
-
 ## or if you want to save *EVERYTHING* (and have a very large file):
 ## saveRDS(allsets, outfile)
+
+message("results saved to '", outfile, "'")
+

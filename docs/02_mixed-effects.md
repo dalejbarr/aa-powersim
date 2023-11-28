@@ -582,7 +582,7 @@ Now that we've learned to simulated data with crossed random factors of subjects
 
 ### Wrapping the code into `generate_data()`
 
-Now wrap the code you created from section \@ref(dgp) to \@ref(addy) into a single function `generate_data()` that takes three arguments: `eff` (effect size), `nsubj` (number of subjects), `nitem` (number of items), and then all the remaining DGP paramemters in this order: `mu`, `iri_sd`, `sri_sd`, `srs_sd`, `rcor`, and `err_sd`. These final parameters should all be given the default values shown in section \@ref(dgp).
+Now wrap the code you created from section \@ref(dgp) to \@ref(addy) into a single function `generate_data()` that takes four arguments: `id` (run id), `eff` (effect size), `nsubj` (number of subjects), `nitem` (number of items), and then all the remaining DGP paramemters in this order: `mu`, `iri_sd`, `sri_sd`, `srs_sd`, `rcor`, and `err_sd`. These final parameters should all be given the default values shown in section \@ref(dgp).
 
 The code should return a table with columns `subj_id`, `item_id`, `cond`, and `Y`.
 
@@ -590,9 +590,9 @@ Here is 'starter' code that does nothing.
 
 
 ```r
-generate_data <- function(eff, nsubj, nitem,
-                          mu = 800, iri_sd = 80, sri_sd = 100,
-                          srs_sd = 40, rcor = .2, err_sd = 200) {
+generate_data <- function(id, eff, nsubj, nitem,
+                          mu, iri_sd, sri_sd,
+                          srs_sd, rcor, err_sd) {
 
   ## 1. TODO generate sample of stimuli
   ## 2. TODO generate sample of subjects
@@ -608,7 +608,9 @@ generate_data <- function(eff, nsubj, nitem,
 }
 
 ## test it out
-generate_data(0, 50, 10)
+generate_data(1, 0, 50, 10,
+              mu = 800, iri_sd = 80, sri_sd = 100,
+              srs_sd = 40, rcor = .2, err_sd = 200)
 ```
 
 
@@ -617,9 +619,9 @@ generate_data(0, 50, 10)
 
 
 ```r
-generate_data <- function(eff, nsubj, nitem,
-                          mu = 800, iri_sd = 80, sri_sd = 100,
-                          srs_sd = 40, rcor = .2, err_sd = 200) {
+generate_data <- function(id, eff, nsubj, nitem,
+                          mu, iri_sd, sri_sd,
+                          srs_sd, rcor, err_sd) {
 
   ## 1. generate sample of stimuli
   items <- tibble(item_id = 1:nitem,
@@ -672,5 +674,405 @@ analyze_data <- function(dat) {
 }
 ```
 
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+analyze_data <- function(dat) {
+  suppressWarnings( # ignore non-convergence
+    suppressMessages({ # ignore 'singular fit'
+      lmer(Y ~ cond + (cond | subj_id) +
+             (1 | item_id), data = dat)
+    }))
+}
+```
+
+
+</div>
+
+
 ### Re-write `extract_stats()`
 
+Currently, `extract_stats()` only pulls out information about the intercept term.
+
+Let's change it so it gets information about the coefficient of `cond`.
+
+Because this function calls `check_converged()`, we need to copy that into our session too.
+
+
+```r
+check_converged <- function(mobj) {
+  ## warning: this is kind of a hack!
+  ## see also performance::check_convergence()
+  sm <- summary(mobj)
+  is.null(sm$optinfo$conv$lme4$messages)
+}
+```
+
+And here's our previous version of `extract_stats()` that you need to change.
+
+
+```r
+extract_stats <- function(mobj) {
+  tibble(sing = isSingular(mobj),
+         conv = check_converged(mobj),
+         estimate = fixef(mobj)[1],
+         stderr = sqrt(diag(vcov(mobj)))[1],
+         tval = estimate / stderr,
+         pval = 2 * (1 - pnorm(abs(tval))))
+}
+```
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+extract_stats <- function(mobj) {
+  tibble(sing = isSingular(mobj),
+         conv = check_converged(mobj),
+         estimate = fixef(mobj)["cond"],
+         stderr = sqrt(diag(vcov(mobj)))["cond"],
+         tval = estimate / stderr,
+         pval = 2 * (1 - pnorm(abs(tval))))
+}
+```
+
+
+</div>
+
+
+### Re-write `do_all()`
+
+The function `do_all()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function `full_results()` which can be used as it is, and is repeated here so that you can conveniently paste it into your script.
+
+
+```r
+full_results <- function(x, alpha = .05) {
+  ## after completing all the Monte Carlo runs for a set,
+  ## calculate statistics
+  x |>
+    select(run_id, stats) |>
+    unnest(stats) |>
+    summarize(n_sing = sum(sing),
+              n_unconv = sum(!conv),
+              n_sig = sum(pval < alpha),
+              N = n())
+}
+```
+
+Now let's re-write `do_all()`. Here's starter code. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
+
+
+```r
+do_all <- function(eff, nmc, nsubj, ntrials) {
+  ## generate, analyze, and extract for a single parameter setting
+  ## you shouldn't need to change anything about this function except
+  ## the arguments and paramemters passed to generate_data()
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "ntrials=", ntrials, "; ",
+          "eff=", eff)
+  dat_full <- tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, generate_data,
+                     ## change parameters below as needed
+                     nsubj = nsubj,
+                     ntrials = ntrials,
+                     eff = eff),
+           mobj = map(dat, analyze_data),
+           stats = map(mobj, extract_stats))
+  
+  bind_cols(tibble(fdat = list(dat_full)),
+            full_results(dat_full))
+}
+```
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+do_all <- function(eff, nsubj, nitem, nmc,
+                   mu, iri_sd, sri_sd,
+                   srs_sd, rcor, err_sd) {
+  ## generate, analyze, and extract for a single parameter setting
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "nitem=", nitem, "; ",
+          "eff=", eff)
+  dat_full <- tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, generate_data,
+                     ## change parameters below as needed
+                     nsubj = nsubj, nitem = nitem,
+                     eff = eff, mu = mu, iri_sd = iri_sd,
+                     sri_sd = sri_sd, srs_sd = srs_sd,
+                     rcor = rcor, err_sd = err_sd),
+           mobj = map(dat, analyze_data),
+           stats = map(mobj, extract_stats))
+  
+  bind_cols(tibble(fdat = list(dat_full)),
+            full_results(dat_full))
+}
+```
+
+
+</div>
+
+
+### Main code
+
+Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining `allsets` so that it calls `do_all()` with the new parameter settings. The rest you can just copy.
+
+
+
+
+
+
+```r
+set.seed(1451) # for deterministic output
+
+## determine number of Monte Carlo runs.
+nmc <- if (interactive()) {
+         20L # small number just for testing things out
+       } else {
+         if (length(commandArgs(TRUE))) {
+           as.integer(commandArgs(TRUE)[1]) # get value from command line
+         } else {
+           stop("need to specify number of Monte Carlo runs on commmand line")
+         }
+       }
+
+params <- tibble(id = 1:5,
+                 eff = seq(0, 1.5, length.out = 5))
+
+allsets <- params |>
+  mutate(result = map(eff, do_all,
+                      nmc = nmc,
+                      nsubj = 10, ntrials = 10))
+
+pow_result <- allsets |>
+  unnest(result) |>
+  mutate(power = n_sig / N) |>
+  select(-fdat)
+
+pow_result
+
+outfile <- "power-simulation-results.rds"
+
+saveRDS(pow_result, outfile)
+
+message("results saved to '", outfile, "'")
+```
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+set.seed(1451) # for deterministic output
+
+## determine number of Monte Carlo runs.
+nmc <- if (interactive()) {
+         20L # small number just for testing things out
+       } else {
+         if (length(commandArgs(TRUE))) {
+           as.integer(commandArgs(TRUE)[1]) # get value from command line
+         } else {
+           stop("need to specify number of Monte Carlo runs on commmand line")
+         }
+       }
+
+params <- tibble(id = 1:5,
+                 eff = seq(0, 1.5, length.out = 5))
+
+allsets <- params |>
+  mutate(result = map(eff, do_all,  # see also furrr::future_map()
+                      nsubj = 20, nitem = 10, nmc = nmc,
+                      mu = 800, iri_sd = 80, sri_sd = 100,
+                      srs_sd = 40, rcor = .2, err_sd = 200))
+                      
+
+pow_result <- allsets |>
+  unnest(result) |>
+  mutate(power = n_sig / N) |>
+  select(-fdat)
+
+pow_result
+
+outfile <- "power-simulation-results.rds"
+
+saveRDS(pow_result, outfile)
+
+message("results saved to '", outfile, "'")
+```
+
+
+</div>
+
+
+### The full script
+
+
+<div class='webex-solution'><button>Click here to see the full script</button>
+
+
+
+```r
+#############################
+## ADD-ON PACKAGES
+
+suppressPackageStartupMessages({
+  library("dplyr")
+  library("tibble")
+  library("purrr")
+  library("tidyr")
+
+  library("lme4")
+})
+
+requireNamespace("MASS") # make sure it's there but don't load it
+
+#############################
+## CUSTOM FUNCTIONS
+
+generate_data <- function(id, eff, nsubj, nitem,
+                          mu, iri_sd, sri_sd,
+                          srs_sd, rcor, err_sd) {
+
+  ## 1. generate sample of stimuli
+  items <- tibble(item_id = 1:nitem,
+                  cond = rep(c(-.5, .5), times = nitem / 2),
+                  iri = rnorm(nitem, 0, sd = iri_sd))
+  
+  ## 2. generate sample of subjects
+  mx <- rbind(c(sri_sd^2,               rcor * sri_sd * srs_sd),
+              c(rcor * sri_sd * srs_sd, srs_sd^2)) # look at it
+
+  by_subj_rfx <- MASS::mvrnorm(nsubj,
+                               mu = c(sri = 0, srs = 0),
+                               Sigma = mx)
+
+  subjects <- as_tibble(by_subj_rfx) |>
+    mutate(subj_id = row_number()) |>
+    select(subj_id, everything())
+  
+  ## 3. generate trials, adding in error
+  trials <- crossing(subj_id = subjects |> pull(subj_id),
+                     item_id = items |> pull(item_id)) |>
+    mutate(err = rnorm(n = nsubj * nitem,
+                       mean = 0, sd = err_sd))
+  
+  ## 4. join the three tables together, AND
+  ## 5. create the response variable
+  subjects |>
+    inner_join(trials, "subj_id") |>
+    inner_join(items, "item_id") |>
+    mutate(Y = mu + sri + iri + (eff + srs) * cond + err) |>
+    select(subj_id, item_id, cond, Y)
+}
+
+analyze_data <- function(dat) {
+  suppressWarnings( # ignore non-convergence
+    suppressMessages({ # ignore 'singular fit'
+      lmer(Y ~ cond + (cond | subj_id) +
+             (1 | item_id), data = dat)
+    }))
+}
+
+extract_stats <- function(mobj) {
+  tibble(sing = isSingular(mobj),
+         conv = check_converged(mobj),
+         estimate = fixef(mobj)["cond"],
+         stderr = sqrt(diag(vcov(mobj)))["cond"],
+         tval = estimate / stderr,
+         pval = 2 * (1 - pnorm(abs(tval))))
+}
+
+#############################
+## UTILITY FUNCTIONS
+
+check_converged <- function(mobj) {
+  ## warning: this is kind of a hack!
+  ## see also performance::check_convergence()
+  sm <- summary(mobj)
+  is.null(sm$optinfo$conv$lme4$messages)
+}
+
+full_results <- function(x, alpha = .05) {
+  ## after completing all the Monte Carlo runs for a set,
+  ## calculate statistics
+  x |>
+    select(run_id, stats) |>
+    unnest(stats) |>
+    summarize(n_sing = sum(sing),
+              n_unconv = sum(!conv),
+              n_sig = sum(pval < alpha),
+              N = n())
+}
+
+do_all <- function(eff, nsubj, nitem, nmc,
+                   mu, iri_sd, sri_sd,
+                   srs_sd, rcor, err_sd) {
+  ## generate, analyze, and extract for a single parameter setting
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "nitem=", nitem, "; ",
+          "eff=", eff)
+  dat_full <- tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, generate_data,
+                     ## change parameters below as needed
+                     nsubj = nsubj, nitem = nitem,
+                     eff = eff, mu = mu, iri_sd = iri_sd,
+                     sri_sd = sri_sd, srs_sd = srs_sd,
+                     rcor = rcor, err_sd = err_sd),
+           mobj = map(dat, analyze_data),
+           stats = map(mobj, extract_stats))
+  
+  bind_cols(tibble(fdat = list(dat_full)),
+            full_results(dat_full))
+}
+
+#############################
+## MAIN CODE STARTS HERE
+
+set.seed(1451) # for deterministic output
+
+## determine number of Monte Carlo runs.
+nmc <- if (interactive()) {
+         20L # small number just for testing things out
+       } else {
+         if (length(commandArgs(TRUE))) {
+           as.integer(commandArgs(TRUE)[1]) # get value from command line
+         } else {
+           stop("need to specify number of Monte Carlo runs on commmand line")
+         }
+       }
+
+params <- tibble(id = 1:5,
+                 eff = seq(0, 1.5, length.out = 5))
+
+allsets <- params |>
+  mutate(result = map(eff, do_all,  # see also furrr::future_map()
+                      nsubj = 20, nitem = 10, nmc = nmc,
+                      mu = 800, iri_sd = 80, sri_sd = 100,
+                      srs_sd = 40, rcor = .2, err_sd = 200))
+                      
+
+pow_result <- allsets |>
+  unnest(result) |>
+  mutate(power = n_sig / N) |>
+  select(-fdat)
+
+pow_result
+
+outfile <- "power-simulation-results.rds"
+
+saveRDS(pow_result, outfile)
+
+message("results saved to '", outfile, "'")
+```
