@@ -37,11 +37,11 @@ Two pre-requisites for the workshop are: (1) basic understanding of linear regre
 
 - *Part 1* (9:00-12:00): **Building blocks of simulation**
 
-  Provides an overview of critical programming skills for Monte Carlo simulation.
+  Provides an overview of critical programming skills for Monte Carlo simulation. We will build these skills by writing a script for a power simulation for a one-sample t-test.
 
 - *Part 2* (14:00-17:00): **Simulating power in linear mixed-effects models**
 
-  Conceptual introduction to the data generating process (DGP) behind many models in psycholinguistics, and instructions on how to adapt the script generated in Part 1 to a multilevel context.
+  Conceptual introduction to the data generating process (DGP) behind many models in psycholinguistics, and instructions on how to adapt the script generated in Part 1 to a mixed-model context.
 
 ## Notes on these materials {-}
 

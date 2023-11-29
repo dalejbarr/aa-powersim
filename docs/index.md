@@ -31,11 +31,11 @@ Two pre-requisites for the workshop are: (1) basic understanding of linear regre
 
 - *Part 1* (9:00-12:00): **Building blocks of simulation**
 
-  Provides an overview of critical programming skills for Monte Carlo simulation.
+  Provides an overview of critical programming skills for Monte Carlo simulation. We will build these skills by writing a script for a power simulation for a one-sample t-test.
 
 - *Part 2* (14:00-17:00): **Simulating power in linear mixed-effects models**
 
-  Conceptual introduction to the data generating process (DGP) behind many models in psycholinguistics, and instructions on how to adapt the script generated in Part 1 to a multilevel context.
+  Conceptual introduction to the data generating process (DGP) behind many models in psycholinguistics, and instructions on how to adapt the script generated in Part 1 to a mixed-model context.
 
 ## Notes on these materials {-}
 
@@ -46,6 +46,8 @@ It would be good to keep a local copy of these materials in case the website eve
 Once you've downloaded the archive, just extract the files, locate the file `index.html` in the `docs` directory, and open this file using a web browser.
 
 You are free to re-use and modify the material in this textbook for your own purposes, with the stipulation that you cite the original work. Please note additional terms of the [Creative Commons CC-BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/) governing re-use of this material.
+
+> Barr, Dale J. (2023). Simulating power for mixed-effects models (workshop materials). Downloaded from <https://dalejbarr.github.io/aa-powersim>.
 
 The book was built using the R [**`bookdown`**](https://bookdown.org) package. The source files are available at [github](https://github.com/dalejbarr/aa-powersim).
 

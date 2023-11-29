@@ -50,7 +50,7 @@ rnorm(10, sd = 5)
 
 Functions like `rnorm()` will give you random output based on the state of the internal random number generator (RNG). If we want to get a deterministic output, we can "seed" the random number generator using `set.seed()`. (Often it makes sense to do this once, at the top of a script.) The function `set.seed()` takes a single argument, which is an arbitrary integer value that provides the 'starting point'.
 
-**TASK: set the seed to 1451 and then simulation 15 observations from a normal distribution with a mean of 600 and standard deviation of 80. If you do this right, your output should EXACTLY match the output below.**
+**TASK: set the seed to 1451 and then simulate 15 observations from a normal distribution with a mean of 600 and standard deviation of 80. If you do this right, your output should EXACTLY match the output below.**
 
 ```{r set-seed, echo = FALSE}
 set.seed(1451)
@@ -69,7 +69,7 @@ rnorm(15, mean = 600, sd = 80)
 
 To estimate power using simulation, we need to create our function and then run it many times—maybe 1,000 or 10,000 times to get a reliable estimate. Of course, we are not going to type a function call to do it that many times; it would be tedious, and besides, we might make mistakes. What we need is something to do the iteration for us, possible changing the input to our function each time.
 
-In many programming languages, this is accomplished by writing a "for" loop. This is possible in R as well, but we're going to do this a different way which saves typing.
+In many programming languages, this is accomplished by writing a "for" loop. This is possible in R as well, but we're going to do this a different way that saves typing.
 
 We are going to use the function `purrr::map()`. Let's look at an example. Suppose we had a vector of integers, `x`, and wanted to compute the logarithm (`log()`) of each one. If we didn't know about `map()`, we might type the following.
 
@@ -101,7 +101,7 @@ Now, by default, `log()` gives the natural logarithm (using base $e$, Euler's nu
 map_dbl(x, log, base = 2)
 ```
 
-But now it's unclear... is `base = 2` an argument to `map_dbl()`, or to `log()`? (Well, it's both). This makes things needlessly hard to debug. So the recommended way to do this is to call `log()` within `map()` as part of an anonymous function.
+But this makes the syntax unclear: Is `base = 2` an argument to `map_dbl()`, or to `log()`? Technically, it's an argument to map that is passed along to `log()`, but that is confusing. This makes things needlessly hard to debug. So the recommended way to do this is to call `log()` within `map()` as part of an anonymous function.
 
 ```{r}
 map_dbl(x, \(.x) log(.x, base = 2))
@@ -148,6 +148,10 @@ stimuli <- tibble(word = rep(c("red", "green", "blue", "yellow",
                   cond = rep(c("congruent", "incongruent"), times = 6))
 ```
 
+```{r stroop-stim-output, echo=FALSE}
+stimuli
+```
+
 We could type all that out manually but it would be tedious and prone to typos. Fortunately R has a function `rep()` that allows us to repeat values. Study the code below. until you understand how it works.
 
 ```{r}
@@ -171,7 +175,7 @@ rep(8:10, c(2, 3, 0))
 
 `r unhide()`
 
-Two other functions that are useful in simulation are `seq_len()` and `seq()`. Examples of these are below.
+Two other functions that are useful in simulation are `seq_len()` and `seq()`. We'll e using these later. Examples are below.
 
 ```{r}
 ## sequence of integers 1:length.out;
@@ -194,12 +198,14 @@ Tibbles, like the `data.frame` class from which they are derived, are just speci
 A great feature of tibbles that differs from `data.frame` objects is that they can have columns whose values are themselves... tibbles. That is, we can have tibbles inside of tibbles, but we have to define those columns using the `list()` function.
 
 ```{r}
+## just basic tibbles
 beatles <- tibble(name = c("John", "Paul", "Ringo", "George"),
                   instrument = c("guitar", "bass", "drums", "guitar"))
 
 rolling_stones <- tibble(name = c("Keith", "Mick", "Charlie", "Bill"),
                          instrument = c("guitar", "vocals", "drums", "bass"))
 
+## a tibble with tibbles as elements
 boomer_bands <- tibble(band_name = c("Beatles", "Rolling Stones"),
                        band_members = list(beatles, rolling_stones))
 
@@ -240,14 +246,19 @@ some_numbers <- tibble(numbers = seq_len(3))
 cross_join(some_letters, some_numbers)
 ```
 
-**TASK: Above, we created the table `participants` and `stimuli`. Combine these two tables to create a table `trials` which creates all the possible trials in an experiment where each participant sees each stimulus once. The resulting table should have 60 rows, but don't include 'age' in the output.**
+**TASK: Above, we created the table `participants` and `stimuli`. Combine these two tables to create a table `trials` which creates all the possible trials in an experiment where each participant sees each stimulus once. The resulting table should have 60 rows. Before combining the tables, remove the column named `age` from `participants`.**
 
-```{r stroop-trials}
-trials <- cross_join(participants |> select(id),
-                     stimuli)
+`r hide("Solution")`
+
+```{r stroop-trials, echo=FALSE}
+trials <- participants |>
+  select(-age) |>
+  cross_join(stimuli)
 
 trials
 ```
+
+`r unhide()`
 
 #### Inner join with `dplyr::inner_join()`
 
@@ -262,19 +273,61 @@ participants |>
 
 ### Writing custom functions {#funcs}
 
+In Monte Carlo simulation, you'll need to do the same thing (or variations on the same thing) over and over. Inevitably this means writing a 'function' that encapsulates some process. In the next section, where we learn about power simulation workflow, we'll write our own custom functions to simulate a data set (`generate_data()`), analyze the data (`analyze_data()`) and extract statistics (`extract_stats()`).
+
+To create a function, you define an object using the function named `function()`. That sounds more confusing than it is, so let's jump right into an example. Suppose we want a function that adds two numbers together, `x`, and `y`, and returns the sum.
+
+The code below will do the trick.
+
+```{r}
+add_x_to_y <- function(x, y) {
+  x + y
+}
+```
+
+Now that we've defined the function, we can call it.
+
+```{r}
+add_x_to_y(2, 3)
+```
+
+Once we've defined it, it works like any other function in R. We can use it in `map()`.
+
+```{r}
+map(1:5, \(.x) add_x_to_y(.x, 10))
+```
+
+The part between the curly brackets defines the **function body**, which is where all of the computation happens. Data within the function is **encapsulated**—any variables that you define inside the function will be forgotten and wiped from memory after the function runs. By convention, results from the very last computation are returned to the calling process.
+
+Sometimes it's useful to specify default arguments to save the user typing. So we might want to make the default value of `y` be 10.
+
+```{r}
+add_x_to_y <- function(x, y = 10) {
+  x + y
+}
+```
+
+Now if we omit `y` it will set it to 10.
+
+```{r}
+add_x_to_y(15)
+```
+
 ## Power simulation: Basic workflow
 
 ```{r flow-img, echo=FALSE, fig.cap="The basic workflow behind power simulation.", out.width="60%"}
 knitr::include_graphics("img/flow_3.png")
 ```
 
-Now that we've gone over the programming basics, we are ready to start building a script to simulate power for a one-sample test. Figure \@ref(fig-flow-img) presents the basic workflow.
+Now that we've gone over the programming basics, we are ready to start building a script to simulate power. To keep things simple, we'll simulate power for the simplest possible situation: a one-sample test, with a point null hypothesis of $H_0: \mu = 0$.
+
+Figure \@ref(fig:flow-img) presents the basic workflow.
 
 ### Simulating a dataset
 
 The first thing to do is to write (and test) a function `generate_data()` that takes population parameters and sample size info as input and creates simulated data as output using `rnorm()`.
 
-**TASK: write a function `generate_data()` that takes three arguments as input: `eff` (the population intercept parameter), `nsubj` (number of subjects), and `sd` (the standard deviation, which should default to 1). The resulting table should have two columns, `subj_id` and `dv` (dependent variable; i.e., the result from `rnorm()`).**
+**TASK: write a function `generate_data()` that takes three arguments as input: `eff` (the population intercept parameter), `nsubj` (number of subjects), and `sd` (the standard deviation, which should default to 1) and generates a table with simulated data using `tibble()`. The resulting table should have two columns, `subj_id` and `dv` (dependent variable; i.e., the result from `rnorm()`).**
 
 To test your function, run the code below and see if the output matches exactly.
 
@@ -290,6 +343,16 @@ set.seed(1451)
 
 generate_data(5, 10, 2)
 ```
+
+`r hide("Hint")`
+
+```{r, eval=FALSE}
+generate_data <- function(????) {
+  ## TODO: something with tibble()
+}
+```
+
+`r unhide()`
 
 `r hide("Solution")`
 
@@ -359,29 +422,28 @@ Note that `dat |> pull(dv)` is the tidyverse way of extracting a column from a d
 OK, if we run `generate_data() |> analyze_data()` a bunch of times, it's going to occasionally give us bothersome warnings and messages.
 
 ```{r}
-result <- 1:20 |>
-  map(\(.x) generate_data(0, 10) |> analyze_data())
+result <- map(1:20, \(.x) generate_data(0, 10) |> analyze_data())
 ```
 
-We have two options here: we can *trap* them if we want to react in some way when they occur; or, we can *suppress* them so that they don't clutter up the output when the model is running. Since there are ways to check convergence / singularity after the fact, we'll opt for suppression. Fortunately R has the functions `suppressMessages()` and `suppressWarnings()`, and all we have to do is wrap them around our code. So, our final analysis function will be as follows.
+We have two options here: we can *trap* them if we want to react in some way when they occur; or, we can *suppress* them so that they don't clutter up the output when the model is running. Since there are ways to check convergence / singularity after the fact, we'll opt for suppression. Fortunately R has the functions `suppressMessages()` and `suppressWarnings()`, and all we have to do is wrap them around the part of the code that is generating the side effects. So, our final analysis function will be as follows.
 
 ```{r analyze-data}
 analyze_data <- function(dat) {
   suppressWarnings(
     suppressMessages({
       annoy_user()
-      dat |>
-        pull(dv) |>
-        t.test()
     }))
+  
+  dat |>
+    pull(dv) |>
+    t.test()
 }
 ```
 
 Let's try it again.
 
 ```{r}
-result <- 1:20 |>
-  map(\(.x) generate_data(0, 10) |> analyze_data())
+result <- map(1:20, \(.x) generate_data(0, 10) |> analyze_data())
 ```
 
 For future reference, in cases where you would want to trap an error/message/warning, you would use the `tryCatch()` function instead. See <https://adv-r.hadley.nz/conditions.html> if you want a deep dive into the topic of condition handling.
@@ -403,7 +465,7 @@ We call `tidy()` using `broom::tidy()` because we didn't load the package. Gener
 
 ### Wrapping it all in a single function
 
-Now we've completed the three functions shown in Figure \@ref(fig-flow-img), and can string them together.
+Now we've completed the three functions shown in Figure \@ref(fig:flow-img), and can string them together.
 
 ```{r string-them-together}
 generate_data(0, 10) |>
@@ -424,7 +486,7 @@ result <- tibble(run_id = seq_len(nmc),
 
 **TASK: Update the code above to add two additional rows, `mobj` (a list-column) which has the result of applying `analyze_data()` to each generated dataset, and `stats` (a list-column) which has the result of applying `extract_stats()` to each element `mobj`.**
 
-```{r do-once-pre, include=FALSE}
+```{r do-once-pre2, include=FALSE}
 nmc <- 20L # number of Monte Carlo runs
 
 result <- tibble(run_id = seq_len(nmc),
@@ -441,7 +503,7 @@ result
 
 `r hide("Solution")`
 
-```{r do-once-show, echo=TRUE, eval=FALSE, ref.label="do-once-pre"}
+```{r do-once-show, echo=TRUE, eval=FALSE, ref.label="do-once-pre2"}
 ```
 
 `r unhide()`
@@ -483,11 +545,9 @@ compute_power <- function(x, alpha = .05) {
 
 `r unhide()`
 
-Let's combine all the code into a single function, `do_once()`, that we can run in batch mode as well as interactively, and that goes all the way from from `generate_data()` to `compute_power()`.
+**TASK: Let's wrap the above code in a function `do_once()`, that we can run in batch mode as well as interactively, and that goes all the way from from `generate_data()` to `compute_power()`. This function should accept as input arguments `nmc` (number of Monte Carlo runs), `eff` (effect size), `nsubj` (number of subjects), `sd` (standard deviation), and alpha level `alpha` (defaulting to .05). The function should return the results of `compute_power()`.**
 
-**TASK: Let's wrap the above code in a function `do_once()`. This function should accept as input `nmc` (number of Monte Carlo runs), `eff` (effect size), `nsubj` (number of subjects), `sd` (standard deviation), and alpha level `alpha` that defaults to .05. The function should return the results of `compute_power()`.**
-
-```{r do-once, echo=FALSE}
+```{r do-once-pre, echo=FALSE}
 do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
   tibble(run_id = seq_len(nmc),
          dat = map(run_id, \(.x) generate_data(eff, nsubj, sd)),
@@ -507,10 +567,27 @@ do_once(nmc = 1000, eff = 0, nsubj = 20, sd = 1, alpha = .05)
 
 `r hide("Solution")`
 
-```{r do-once-show, eval=FALSE, ref.label="do-once"}
+```{r do-once-show, eval=FALSE, ref.label="do-once-pre"}
 ```
 
 `r unhide()`
+
+OK, one last amendment to `do_once()`. This function can take a long time to return depending on the number of Monte Carlo runs it needs to complete. So it's useful to send a message to the user so the user knows that the program didn't just hang. Let's do that.
+
+```{r do-once}
+do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
+
+  message("computing power over ", nmc, " runs with eff=",
+          eff, "; nsubj=", nsubj, "; sd = ", sd, "; alpha = ", alpha)
+  
+  tibble(run_id = seq_len(nmc),
+         dat = map(run_id, \(.x) generate_data(eff, nsubj, sd)),
+         mobj = map(dat, \(.x) analyze_data(.x)),
+         stats = map(mobj, \(.x) extract_stats(.x))) |>
+    compute_power(alpha)
+}
+```
+
 
 OK, now that you've got this far, you should take a step back and celebrate that you have a function, `do_once()`, that runs a power simulation given the population parameters, alpha level, and sample size as user input. 
 
@@ -520,7 +597,7 @@ So, we've now calculated a power curve for a *single parameter setting*. But we 
 
 Well, given that we've encapulated the guts of our simulation in a single function, it is a simple matter of just calling that function repeatedly with different inputs and storing the results. Sound familiar?
 
-**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from zero to 1.5. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `100` respectively).**
+**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from zero to 1.5. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `1000` respectively).**
 
 If you set the seed to 1451 before you run it, then print it out, the resulting table should look like this.
 
@@ -530,13 +607,33 @@ set.seed(1451)
 
 ```{r param-values, echo=FALSE}
 pow_result <- tibble(eff = seq(0, 1.2, length.out = 5),
-                     pow = map(eff, \(.x) do_once(100, .x, 20, 1))) |>
+                     pow = map(eff, \(.x) do_once(1000, .x, 20, 1))) |>
   unnest(pow)
 ```
 
 ```{r param-values-test, echo=FALSE}
 pow_result
 ```
+
+`r hide("Hint about creating a sequence")`
+
+```{r, eval=FALSE}
+seq(0, 1.2, length.out = 5)
+```
+
+`r unhide()`
+
+`r hide("Hint: General idea about how the code should look")`
+
+```{r, eval=FALSE}
+pow_result <- tibble(eff = seq(???),
+                     pow = map(eff, ???)) |>
+  unnest(pow)
+
+pow_result
+```
+
+`r unhide()`
 
 `r hide("Solution")`
 
@@ -569,6 +666,8 @@ Running power simulations can take a long time. We surely want to save the resul
 #############################
 ## UTILITY FUNCTIONS
 
+<<annoy-user>>
+
 <<compute-power>>
 
 <<do-once>>
@@ -576,12 +675,16 @@ Running power simulations can take a long time. We surely want to save the resul
 #############################
 ## MAIN PROCEDURE
 
+## TODO: possibly set the seed to something for reproducibility?
+
 <<param-values>>
+
+pow_result
 
 outfile <- "simulation-results-one-sample.rds"
 
 saveRDS(pow_result, file = outfile)
-message("saved results to '", ofile, "'")
+message("saved results to '", outfile, "'")
 ```
 
 `r unhide()`

@@ -128,7 +128,7 @@
 <span class="header-section-number">2.1.1</span> Set up the environment<a class="anchor" aria-label="anchor" href="#set-up-the-environment"><i class="fas fa-link"></i></a>
 </h3>
 <p>If you want to get the same results as everyone else for this exercise, then we all should seed the random number generator with the same value. While we're at it, let's load in the packages we need.</p>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/lme4/lme4/">"lme4"</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://tidyverse.tidyverse.org">"tidyverse"</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="st">"MASS"</span><span class="op">)</span> <span class="co">## make sure it's there but don't load it</span></span>
@@ -140,7 +140,7 @@
 <span class="header-section-number">2.1.2</span> Define the parameters for the DGP<a class="anchor" aria-label="anchor" href="#dgp"><i class="fas fa-link"></i></a>
 </h3>
 <p>Now let's define the parameters for the DGP (data generating process).</p>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># number of subjects</span></span>
 <span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fl">50</span>  <span class="co"># must be an even number</span></span>
 <span></span>
@@ -213,8 +213,8 @@ Hint (iri)
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
 <span>                cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -225,10 +225,10 @@ Solution
 </h3>
 <p>To generate the by-subject random effects, you will need to generate data from a <em>bivariate normal distribution</em>. To do this, we will use the function <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
 <div class="warning">
-<p>Do not run <code><a href="http://www.stats.ox.ac.uk/pub/MASS4/">library("MASS")</a></code> just to get this one function, because <code>MASS</code> has a function <code><a href="https://rdrr.io/pkg/dplyr/man/select.html">select()</a></code> that will overwrite the tidyverse version. Since all we want from MASS is the <code>mvrnorm()</code> function, we can just access it directly by the <code>pkgname::function</code> syntax, i.e., <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
+<p>Do not run <code><a href="http://www.stats.ox.ac.uk/pub/MASS4/">library("MASS")</a></code> just to get this one function, because <code>MASS</code> has a function <code><a href="https://dplyr.tidyverse.org/reference/select.html">select()</a></code> that will overwrite the tidyverse version. Since all we want from MASS is the <code>mvrnorm()</code> function, we can just access it directly by the <code>pkgname::function</code> syntax, i.e., <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code>.</p>
 </div>
 <p>Here is an example of how to use <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html">MASS::mvrnorm()</a></code> to randomly generate correlated data (with <span class="math inline">\(r = -.6\)</span>) for a simple bivariate case. In this example, the variances of each of the two variables is defined as 1, such that the covariance becomes equal to the correlation between the variables.</p>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## mx is the variance-covariance matrix</span></span>
 <span><span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">.6</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.6</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -238,8 +238,8 @@ Solution
 <span>                          Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## look at biv_data</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tibble/man/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">biv_data</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/aes.html">aes</a></span><span class="op">(</span><span class="va">V1</span>, <span class="va">V2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/ggplot2/man/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">biv_data</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">V1</span>, <span class="va">V2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="02_mixed-effects_files/figure-html/unnamed-chunk-5-1.png" width="100%" style="display: block; margin: auto;"></div>
 <p>Your subjects table should look like this:</p>
 <div class="webex-solution">
@@ -380,7 +380,7 @@ Hint 2 (covariance)
 <button>
 Hint 3 (building a matrix)
 </button>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## bind together rows</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">sri_sd</span><span class="op">^</span><span class="fl">2</span>,            <span class="va">r</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span><span class="op">)</span>,</span>
@@ -398,7 +398,7 @@ Hint 4: (matrix to tibble)
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">sri_sd</span><span class="op">^</span><span class="fl">2</span>,               <span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">rcor</span> <span class="op">*</span> <span class="va">sri_sd</span> <span class="op">*</span> <span class="va">srs_sd</span>, <span class="va">srs_sd</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># look at it</span></span>
 <span></span>
@@ -406,16 +406,16 @@ Solution
 <span>                             mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>sri <span class="op">=</span> <span class="fl">0</span>, srs <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
 <span>                             Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://rdrr.io/pkg/tidyselect/man/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div id="generate-a-sample-of-encounters-trials" class="section level3" number="2.1.5">
 <h3>
 <span class="header-section-number">2.1.5</span> Generate a sample of encounters (trials)<a class="anchor" aria-label="anchor" href="#generate-a-sample-of-encounters-trials"><i class="fas fa-link"></i></a>
 </h3>
-<p>Each trial is an <em>encounter</em> between a particular subject and stimulus. In this experiment, each subject will see each stimulus. Generate a table <code>trials</code> that lists the encounters in the experiments. Note: each participant encounters each stimulus item once. Use the <code><a href="https://rdrr.io/pkg/dplyr/man/cross_join.html">cross_join()</a></code> function to create all possible encounters.</p>
+<p>Each trial is an <em>encounter</em> between a particular subject and stimulus. In this experiment, each subject will see each stimulus. Generate a table <code>trials</code> that lists the encounters in the experiments. Note: each participant encounters each stimulus item once. Use the <code><a href="https://dplyr.tidyverse.org/reference/cross_join.html">cross_join()</a></code> function to create all possible encounters.</p>
 <p>Now apply this example to generate the table below, where <code>err</code> is the residual term, drawn from <span class="math inline">\(N \sim \left(0, \sigma^2\right)\)</span>, where <span class="math inline">\(\sigma\)</span> is <code>err_sd</code>.</p>
 <pre><code>## # A tibble: 5,000 × 3
 ##    subj_id item_id    err
@@ -435,10 +435,10 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
-<span>                     <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
+<span>                     <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
 <span>                     mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>  </span></code></pre></div>
 </div>
 </div>
@@ -466,12 +466,12 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_sim</span> <span class="op">&lt;-</span> <span class="va">subjects</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/arrange.html">arrange</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">sri</span>, <span class="va">iri</span>, <span class="va">srs</span>, <span class="va">cond</span>, <span class="va">err</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">sri</span>, <span class="va">iri</span>, <span class="va">srs</span>, <span class="va">cond</span>, <span class="va">err</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div id="addy" class="section level3" number="2.1.7">
@@ -499,10 +499,10 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_sim2</span> <span class="op">&lt;-</span> <span class="va">dat_sim</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">Y</span>, <span class="fu"><a href="https://rdrr.io/pkg/tidyselect/man/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">Y</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div id="fitting-the-model" class="section level3" number="2.1.8">
@@ -514,7 +514,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">cond</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">cond</span> <span class="op">|</span> <span class="va">subj_id</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">item_id</span><span class="op">)</span>,</span>
 <span>                <span class="va">dat_sim2</span>, REML <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -632,7 +632,7 @@ Solution (random effects)
 <p>Now wrap the code you created from section <a href="linear-mixed-effects-modeling.html#dgp">2.1.2</a> to <a href="linear-mixed-effects-modeling.html#addy">2.1.7</a> into a single function <code>generate_data()</code> that takes the arguments: <code>eff</code> (effect size), <code>nsubj</code> (number of subjects), <code>nitem</code> (number of items), and then all the remaining DGP paramemters in this order: <code>mu</code>, <code>iri_sd</code>, <code>sri_sd</code>, <code>srs_sd</code>, <code>rcor</code>, and <code>err_sd</code>.</p>
 <p>The code should return a table with columns <code>subj_id</code>, <code>item_id</code>, <code>cond</code>, and <code>Y</code>.</p>
 <p>Here is 'starter' code that does nothing.</p>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">generate_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                          <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                          <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
@@ -644,7 +644,7 @@ Solution (random effects)
 <span>  <span class="co">## 5. TODO create the response variable</span></span>
 <span></span>
 <span>  <span class="co">## TODO replace this placeholder table with your result</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>         item_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>         cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">double</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>         Y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">double</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -658,13 +658,13 @@ Solution (random effects)
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">generate_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                          <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                          <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
 <span>  <span class="co">## 1. generate sample of stimuli</span></span>
-<span>  <span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
+<span>  <span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
 <span>                  cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                  iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
@@ -676,23 +676,23 @@ Solution
 <span>                               mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>sri <span class="op">=</span> <span class="fl">0</span>, srs <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
 <span>                               Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://rdrr.io/pkg/tidyselect/man/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="co">## 3. generate trials, adding in error</span></span>
-<span>  <span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
-<span>                       <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
+<span>  <span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
+<span>                       <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
 <span>                       mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="co">## 4. join the three tables together, AND</span></span>
 <span>  <span class="co">## 5. create the response variable</span></span>
 <span>  <span class="va">subjects</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">cond</span>, <span class="va">Y</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">cond</span>, <span class="va">Y</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
@@ -701,7 +701,7 @@ Solution
 <span class="header-section-number">2.2.2</span> Re-write <code>analyze_data()</code><a class="anchor" aria-label="anchor" href="#re-write-analyze_data"><i class="fas fa-link"></i></a>
 </h3>
 <p>Now let's re-write our <code>analyze_data()</code> function for this design.</p>
-<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">analyze_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="co"># ignore non-convergence</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html">suppressMessages</a></span><span class="op">(</span><span class="op">{</span> <span class="co"># ignore 'singular fit'</span></span>
@@ -712,7 +712,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">analyze_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="co"># ignore non-convergence</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html">suppressMessages</a></span><span class="op">(</span><span class="op">{</span> <span class="co"># ignore 'singular fit'</span></span>
@@ -729,7 +729,7 @@ Solution
 <p>Currently, <code>extract_stats()</code> only pulls out information about the intercept term.</p>
 <p>Let's change it so it gets information about the coefficient of <code>cond</code>.</p>
 <p>Because this function calls <code>check_converged()</code>, we need to copy that into our session too.</p>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">check_converged</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co">## warning: this is kind of a hack!</span></span>
 <span>  <span class="co">## see also performance::check_convergence()</span></span>
@@ -737,9 +737,9 @@ Solution
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">sm</span><span class="op">$</span><span class="va">optinfo</span><span class="op">$</span><span class="va">conv</span><span class="op">$</span><span class="va">lme4</span><span class="op">$</span><span class="va">messages</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>And here's our previous version of <code>extract_stats()</code> that you need to change.</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">extract_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         conv <span class="op">=</span> <span class="fu">check_converged</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>         stderr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html">vcov</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
@@ -750,9 +750,9 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">extract_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         conv <span class="op">=</span> <span class="fu">check_converged</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">[</span><span class="st">"cond"</span><span class="op">]</span>,</span>
 <span>         stderr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html">vcov</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="st">"cond"</span><span class="op">]</span>,</span>
@@ -766,20 +766,20 @@ Solution
 <span class="header-section-number">2.2.4</span> Re-write <code>do_once()</code><a class="anchor" aria-label="anchor" href="#re-write-do_once"><i class="fas fa-link"></i></a>
 </h3>
 <p>The function <code>do_once()</code> performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function <code>full_results()</code> which can be used as it is, and is repeated here so that you can conveniently paste it into your script.</p>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">full_results</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
 <span>  <span class="co">## calculate statistics</span></span>
 <span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/tidyr/man/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
 <span>              n_unconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>,</span>
 <span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
-<span>              N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>Now let's re-write <code>do_once()</code>. Here's starter code. You'll need to change its arguments to match <code>generate_data()</code> as well as the arguments passed to <code>generate_data()</code> via <code><a href="https://rdrr.io/pkg/purrr/man/map.html">map()</a></code>. It's also a good idea to update the <code><a href="https://rdrr.io/r/base/message.html">message()</a></code> it prints for the user.</p>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<p>Now let's re-write <code>do_once()</code>. Here's starter code. You'll need to change its arguments to match <code>generate_data()</code> as well as the arguments passed to <code>generate_data()</code> via <code><a href="https://purrr.tidyverse.org/reference/map.html">map()</a></code>. It's also a good idea to update the <code><a href="https://rdrr.io/r/base/message.html">message()</a></code> it prints for the user.</p>
+<div class="sourceCode" id="cb115"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nmc</span>, <span class="va">nsubj</span>, <span class="va">ntrials</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co">## generate, analyze, and extract for a single parameter setting</span></span>
 <span>  <span class="co">## you shouldn't need to change anything about this function except</span></span>
@@ -788,19 +788,19 @@ Solution
 <span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"ntrials="</span>, <span class="va">ntrials</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">ntrials</span><span class="op">)</span>,</span>
-<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">ntrials</span><span class="op">)</span>,</span>
+<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="webex-solution">
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
 <span>                   <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                   <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
@@ -809,14 +809,14 @@ Solution
 <span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
@@ -826,7 +826,7 @@ Solution
 <span class="header-section-number">2.2.5</span> Main code<a class="anchor" aria-label="anchor" href="#main-code"><i class="fas fa-link"></i></a>
 </h3>
 <p>Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining <code>allsets</code> so that it calls <code>do_once()</code> with the new parameter settings. The rest you can just copy.</p>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span> <span class="co"># for deterministic output</span></span>
 <span></span>
 <span><span class="co">## determine effect sizes, nsubj, nitem, and nmc from the command line</span></span>
@@ -841,17 +841,17 @@ Solution
 <span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
 <span>                 eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">eff_a</span>, <span class="va">eff_b</span>, length.out <span class="op">=</span> <span class="va">steps</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">allsets</span> <span class="op">&lt;-</span> <span class="va">params</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
 <span>                      \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co">## add remaining args</span></span>
 <span></span>
 <span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tidyr/man/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pow_result</span></span>
 <span></span>
@@ -865,7 +865,7 @@ Solution
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span> <span class="co"># for deterministic output</span></span>
 <span></span>
 <span><span class="co">## determine effect sizes, nsubj, nitem, and nmc from the command line</span></span>
@@ -880,19 +880,19 @@ Solution
 <span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
 <span>                 eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">eff_a</span>, <span class="va">eff_b</span>, length.out <span class="op">=</span> <span class="va">steps</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">allsets</span> <span class="op">&lt;-</span> <span class="va">params</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
 <span>                      \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="va">.x</span>, nsubj <span class="op">=</span> <span class="va">nsubj</span>, nitem <span class="op">=</span> <span class="va">nitem</span>, nmc <span class="op">=</span> <span class="va">nmc</span>,</span>
 <span>                                    mu <span class="op">=</span> <span class="fl">800</span>, iri_sd <span class="op">=</span> <span class="fl">80</span>, sri_sd <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>                                    srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tidyr/man/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pow_result</span></span>
 <span></span>
@@ -912,7 +912,7 @@ Solution
 <button>
 Click here to see the full script
 </button>
-<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#############################</span></span>
 <span><span class="co">## ADD-ON PACKAGES</span></span>
 <span></span>
@@ -935,7 +935,7 @@ Click here to see the full script
 <span>                          <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
 <span></span>
 <span>  <span class="co">## 1. generate sample of stimuli</span></span>
-<span>  <span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
+<span>  <span class="va">items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>item_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nitem</span>,</span>
 <span>                  cond <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">.5</span>, <span class="fl">.5</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">nitem</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                  iri <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nitem</span>, <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">iri_sd</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
@@ -947,23 +947,23 @@ Click here to see the full script
 <span>                               mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>sri <span class="op">=</span> <span class="fl">0</span>, srs <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
 <span>                               Sigma <span class="op">=</span> <span class="va">mx</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://rdrr.io/pkg/tidyselect/man/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html">as_tibble</a></span><span class="op">(</span><span class="va">by_subj_rfx</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_id <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="co">## 3. generate trials, adding in error</span></span>
-<span>  <span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
-<span>                       <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
+<span>  <span class="va">trials</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/cross_join.html">cross_join</a></span><span class="op">(</span><span class="va">subjects</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span><span class="op">)</span>,</span>
+<span>                       <span class="va">items</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">item_id</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">nsubj</span> <span class="op">*</span> <span class="va">nitem</span>,</span>
 <span>                       mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="co">## 4. join the three tables together, AND</span></span>
 <span>  <span class="co">## 5. create the response variable</span></span>
 <span>  <span class="va">subjects</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">cond</span>, <span class="va">Y</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">trials</span>, <span class="st">"subj_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">items</span>, <span class="st">"item_id"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">mu</span> <span class="op">+</span> <span class="va">sri</span> <span class="op">+</span> <span class="va">iri</span> <span class="op">+</span> <span class="op">(</span><span class="va">eff</span> <span class="op">+</span> <span class="va">srs</span><span class="op">)</span> <span class="op">*</span> <span class="va">cond</span> <span class="op">+</span> <span class="va">err</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subj_id</span>, <span class="va">item_id</span>, <span class="va">cond</span>, <span class="va">Y</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">analyze_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="op">{</span></span>
@@ -975,7 +975,7 @@ Click here to see the full script
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">extract_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         conv <span class="op">=</span> <span class="fu">check_converged</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">[</span><span class="st">"cond"</span><span class="op">]</span>,</span>
 <span>         stderr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html">vcov</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="st">"cond"</span><span class="op">]</span>,</span>
@@ -997,12 +997,12 @@ Click here to see the full script
 <span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
 <span>  <span class="co">## calculate statistics</span></span>
 <span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/tidyr/man/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
 <span>              n_unconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>,</span>
 <span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
-<span>              N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
@@ -1013,14 +1013,14 @@ Click here to see the full script
 <span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -1041,19 +1041,19 @@ Click here to see the full script
 <span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tibble/man/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
 <span>                 eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">eff_a</span>, <span class="va">eff_b</span>, length.out <span class="op">=</span> <span class="va">steps</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">allsets</span> <span class="op">&lt;-</span> <span class="va">params</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/purrr/man/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
 <span>                      \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="va">.x</span>, nsubj <span class="op">=</span> <span class="va">nsubj</span>, nitem <span class="op">=</span> <span class="va">nitem</span>, nmc <span class="op">=</span> <span class="va">nmc</span>,</span>
 <span>                                    mu <span class="op">=</span> <span class="fl">800</span>, iri_sd <span class="op">=</span> <span class="fl">80</span>, sri_sd <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>                                    srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/tidyr/man/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/dplyr/man/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pow_result</span></span>
 <span></span>
