@@ -365,7 +365,7 @@ subjects <- as_tibble(by_subj_rfx) |>
 
 ### Generate a sample of encounters (trials)
 
-Each trial is an *encounter* between a particular subject and stimulus.  In this experiment, each subject will see each stimulus.  Generate a table `trials` that lists the encounters in the experiments. Note: each participant encounters each stimulus item once.  Use the `crossing()` function to create all possible encounters.
+Each trial is an *encounter* between a particular subject and stimulus.  In this experiment, each subject will see each stimulus.  Generate a table `trials` that lists the encounters in the experiments. Note: each participant encounters each stimulus item once.  Use the `cross_join()` function to create all possible encounters.
 
 Now apply this example to generate the table below, where `err` is the residual term, drawn from \(N \sim \left(0, \sigma^2\right)\), where \(\sigma\) is `err_sd`.
 
@@ -395,8 +395,8 @@ Now apply this example to generate the table below, where `err` is the residual 
 
 
 ```r
-trials <- crossing(subj_id = subjects |> pull(subj_id),
-                   item_id = items |> pull(item_id)) |>
+trials <- cross_join(subjects |> select(subj_id),
+                     items |> select(item_id)) |>
   mutate(err = rnorm(n = nsubj * nitem,
                      mean = 0, sd = err_sd))  
 ```
@@ -582,7 +582,7 @@ Now that we've learned to simulated data with crossed random factors of subjects
 
 ### Wrapping the code into `generate_data()`
 
-Now wrap the code you created from section \@ref(dgp) to \@ref(addy) into a single function `generate_data()` that takes four arguments: `id` (run id), `eff` (effect size), `nsubj` (number of subjects), `nitem` (number of items), and then all the remaining DGP paramemters in this order: `mu`, `iri_sd`, `sri_sd`, `srs_sd`, `rcor`, and `err_sd`. These final parameters should all be given the default values shown in section \@ref(dgp).
+Now wrap the code you created from section \@ref(dgp) to \@ref(addy) into a single function `generate_data()` that takes the arguments: `eff` (effect size), `nsubj` (number of subjects), `nitem` (number of items), and then all the remaining DGP paramemters in this order: `mu`, `iri_sd`, `sri_sd`, `srs_sd`, `rcor`, and `err_sd`.
 
 The code should return a table with columns `subj_id`, `item_id`, `cond`, and `Y`.
 
@@ -590,7 +590,7 @@ Here is 'starter' code that does nothing.
 
 
 ```r
-generate_data <- function(id, eff, nsubj, nitem,
+generate_data <- function(eff, nsubj, nitem,
                           mu, iri_sd, sri_sd,
                           srs_sd, rcor, err_sd) {
 
@@ -608,7 +608,7 @@ generate_data <- function(id, eff, nsubj, nitem,
 }
 
 ## test it out
-generate_data(1, 0, 50, 10,
+generate_data(0, 50, 10,
               mu = 800, iri_sd = 80, sri_sd = 100,
               srs_sd = 40, rcor = .2, err_sd = 200)
 ```
@@ -619,7 +619,7 @@ generate_data(1, 0, 50, 10,
 
 
 ```r
-generate_data <- function(id, eff, nsubj, nitem,
+generate_data <- function(eff, nsubj, nitem,
                           mu, iri_sd, sri_sd,
                           srs_sd, rcor, err_sd) {
 
@@ -641,8 +641,8 @@ generate_data <- function(id, eff, nsubj, nitem,
     select(subj_id, everything())
   
   ## 3. generate trials, adding in error
-  trials <- crossing(subj_id = subjects |> pull(subj_id),
-                     item_id = items |> pull(item_id)) |>
+  trials <- cross_join(subjects |> select(subj_id),
+                       items |> select(item_id)) |>
     mutate(err = rnorm(n = nsubj * nitem,
                        mean = 0, sd = err_sd))
   
@@ -745,9 +745,9 @@ extract_stats <- function(mobj) {
 </div>
 
 
-### Re-write `do_all()`
+### Re-write `do_once()`
 
-The function `do_all()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function `full_results()` which can be used as it is, and is repeated here so that you can conveniently paste it into your script.
+The function `do_once()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function `full_results()` which can be used as it is, and is repeated here so that you can conveniently paste it into your script.
 
 
 ```r
@@ -764,11 +764,11 @@ full_results <- function(x, alpha = .05) {
 }
 ```
 
-Now let's re-write `do_all()`. Here's starter code. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
+Now let's re-write `do_once()`. Here's starter code. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
 
 
 ```r
-do_all <- function(eff, nmc, nsubj, ntrials) {
+do_once <- function(eff, nmc, nsubj, ntrials) {
   ## generate, analyze, and extract for a single parameter setting
   ## you shouldn't need to change anything about this function except
   ## the arguments and paramemters passed to generate_data()
@@ -777,13 +777,9 @@ do_all <- function(eff, nmc, nsubj, ntrials) {
           "ntrials=", ntrials, "; ",
           "eff=", eff)
   dat_full <- tibble(run_id = seq_len(nmc)) |>
-    mutate(dat = map(run_id, generate_data,
-                     ## change parameters below as needed
-                     nsubj = nsubj,
-                     ntrials = ntrials,
-                     eff = eff),
-           mobj = map(dat, analyze_data),
-           stats = map(mobj, extract_stats))
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, ntrials),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x))))
   
   bind_cols(tibble(fdat = list(dat_full)),
             full_results(dat_full))
@@ -796,7 +792,7 @@ do_all <- function(eff, nmc, nsubj, ntrials) {
 
 
 ```r
-do_all <- function(eff, nsubj, nitem, nmc,
+do_once <- function(eff, nsubj, nitem, nmc,
                    mu, iri_sd, sri_sd,
                    srs_sd, rcor, err_sd) {
   ## generate, analyze, and extract for a single parameter setting
@@ -805,14 +801,11 @@ do_all <- function(eff, nsubj, nitem, nmc,
           "nitem=", nitem, "; ",
           "eff=", eff)
   dat_full <- tibble(run_id = seq_len(nmc)) |>
-    mutate(dat = map(run_id, generate_data,
-                     ## change parameters below as needed
-                     nsubj = nsubj, nitem = nitem,
-                     eff = eff, mu = mu, iri_sd = iri_sd,
-                     sri_sd = sri_sd, srs_sd = srs_sd,
-                     rcor = rcor, err_sd = err_sd),
-           mobj = map(dat, analyze_data),
-           stats = map(mobj, extract_stats))
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
+                                                 mu, iri_sd, sri_sd,
+                                                 srs_sd, rcor, err_sd)),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x)))
   
   bind_cols(tibble(fdat = list(dat_full)),
             full_results(dat_full))
@@ -825,7 +818,7 @@ do_all <- function(eff, nsubj, nitem, nmc,
 
 ### Main code
 
-Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining `allsets` so that it calls `do_all()` with the new parameter settings. The rest you can just copy.
+Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining `allsets` so that it calls `do_once()` with the new parameter settings. The rest you can just copy.
 
 
 
@@ -835,24 +828,24 @@ Now that we've re-written all of the functions, let's adjust the main code of th
 ```r
 set.seed(1451) # for deterministic output
 
-## determine number of Monte Carlo runs.
-nmc <- if (interactive()) {
-         20L # small number just for testing things out
-       } else {
-         if (length(commandArgs(TRUE))) {
-           as.integer(commandArgs(TRUE)[1]) # get value from command line
-         } else {
-           stop("need to specify number of Monte Carlo runs on commmand line")
-         }
-       }
+## determine effect sizes, nsubj, nitem, and nmc from the command line
+if (length(commandArgs(TRUE)) != 6L) {
+  stop("need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'")
+}
 
-params <- tibble(id = 1:5,
-                 eff = seq(0, 1.5, length.out = 5))
+nmc <- commandArgs(TRUE)[1] |> as.integer()   # no. Monte Carlo runs
+eff_a <- commandArgs(TRUE)[2] |> as.double()  # smallest effect size
+eff_b <- commandArgs(TRUE)[3] |> as.double()  # largest effect size
+steps <- commandArgs(TRUE)[4] |> as.integer() # number of steps
+nsubj <- commandArgs(TRUE)[5] |> as.integer()
+nitem <- commandArgs(TRUE)[6] |> as.integer()
+
+params <- tibble(id = seq_len(steps),
+                 eff = seq(eff_a, eff_b, length.out = steps))
 
 allsets <- params |>
-  mutate(result = map(eff, do_all,
-                      nmc = nmc,
-                      nsubj = 10, ntrials = 10))
+  mutate(result = map(eff,
+                      \(.x) do_once(.x))) ## add remaining args
 
 pow_result <- allsets |>
   unnest(result) |>
@@ -861,7 +854,8 @@ pow_result <- allsets |>
 
 pow_result
 
-outfile <- "power-simulation-results.rds"
+outfile <- sprintf("sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds",
+                   nmc, eff_a, eff_b, steps, nsubj, nitem)
 
 saveRDS(pow_result, outfile)
 
@@ -876,27 +870,27 @@ message("results saved to '", outfile, "'")
 ```r
 set.seed(1451) # for deterministic output
 
-## determine number of Monte Carlo runs.
-nmc <- if (interactive()) {
-         20L # small number just for testing things out
-       } else {
-         if (length(commandArgs(TRUE))) {
-           as.integer(commandArgs(TRUE)[1]) # get value from command line
-         } else {
-           stop("need to specify number of Monte Carlo runs on commmand line")
-         }
-       }
+## determine effect sizes, nsubj, nitem, and nmc from the command line
+if (length(commandArgs(TRUE)) != 6L) {
+  stop("need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'")
+}
 
-params <- tibble(id = 1:5,
-                 eff = seq(0, 1.5, length.out = 5))
+nmc <- commandArgs(TRUE)[1] |> as.integer()   # no. Monte Carlo runs
+eff_a <- commandArgs(TRUE)[2] |> as.double()  # smallest effect size
+eff_b <- commandArgs(TRUE)[3] |> as.double()  # largest effect size
+steps <- commandArgs(TRUE)[4] |> as.integer() # number of steps
+nsubj <- commandArgs(TRUE)[5] |> as.integer()
+nitem <- commandArgs(TRUE)[6] |> as.integer()
+
+params <- tibble(id = seq_len(steps),
+                 eff = seq(eff_a, eff_b, length.out = steps))
 
 allsets <- params |>
-  mutate(result = map(eff, do_all,  # see also furrr::future_map()
-                      nsubj = 20, nitem = 10, nmc = nmc,
-                      mu = 800, iri_sd = 80, sri_sd = 100,
-                      srs_sd = 40, rcor = .2, err_sd = 200))
+  mutate(result = map(eff,
+                      \(.x) do_once(.x, nsubj = nsubj, nitem = nitem, nmc = nmc,
+                                    mu = 800, iri_sd = 80, sri_sd = 100,
+                                    srs_sd = 40, rcor = .2, err_sd = 200)))
                       
-
 pow_result <- allsets |>
   unnest(result) |>
   mutate(power = n_sig / N) |>
@@ -904,7 +898,8 @@ pow_result <- allsets |>
 
 pow_result
 
-outfile <- "power-simulation-results.rds"
+outfile <- sprintf("sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds",
+                   nmc, eff_a, eff_b, steps, nsubj, nitem)
 
 saveRDS(pow_result, outfile)
 
@@ -940,7 +935,7 @@ requireNamespace("MASS") # make sure it's there but don't load it
 #############################
 ## CUSTOM FUNCTIONS
 
-generate_data <- function(id, eff, nsubj, nitem,
+generate_data <- function(eff, nsubj, nitem,
                           mu, iri_sd, sri_sd,
                           srs_sd, rcor, err_sd) {
 
@@ -962,8 +957,8 @@ generate_data <- function(id, eff, nsubj, nitem,
     select(subj_id, everything())
   
   ## 3. generate trials, adding in error
-  trials <- crossing(subj_id = subjects |> pull(subj_id),
-                     item_id = items |> pull(item_id)) |>
+  trials <- cross_join(subjects |> select(subj_id),
+                       items |> select(item_id)) |>
     mutate(err = rnorm(n = nsubj * nitem,
                        mean = 0, sd = err_sd))
   
@@ -1015,7 +1010,7 @@ full_results <- function(x, alpha = .05) {
               N = n())
 }
 
-do_all <- function(eff, nsubj, nitem, nmc,
+do_once <- function(eff, nsubj, nitem, nmc,
                    mu, iri_sd, sri_sd,
                    srs_sd, rcor, err_sd) {
   ## generate, analyze, and extract for a single parameter setting
@@ -1024,14 +1019,11 @@ do_all <- function(eff, nsubj, nitem, nmc,
           "nitem=", nitem, "; ",
           "eff=", eff)
   dat_full <- tibble(run_id = seq_len(nmc)) |>
-    mutate(dat = map(run_id, generate_data,
-                     ## change parameters below as needed
-                     nsubj = nsubj, nitem = nitem,
-                     eff = eff, mu = mu, iri_sd = iri_sd,
-                     sri_sd = sri_sd, srs_sd = srs_sd,
-                     rcor = rcor, err_sd = err_sd),
-           mobj = map(dat, analyze_data),
-           stats = map(mobj, extract_stats))
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
+                                                 mu, iri_sd, sri_sd,
+                                                 srs_sd, rcor, err_sd)),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x)))
   
   bind_cols(tibble(fdat = list(dat_full)),
             full_results(dat_full))
@@ -1042,27 +1034,27 @@ do_all <- function(eff, nsubj, nitem, nmc,
 
 set.seed(1451) # for deterministic output
 
-## determine number of Monte Carlo runs.
-nmc <- if (interactive()) {
-         20L # small number just for testing things out
-       } else {
-         if (length(commandArgs(TRUE))) {
-           as.integer(commandArgs(TRUE)[1]) # get value from command line
-         } else {
-           stop("need to specify number of Monte Carlo runs on commmand line")
-         }
-       }
+## determine effect sizes, nsubj, nitem, and nmc from the command line
+if (length(commandArgs(TRUE)) != 6L) {
+  stop("need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'")
+}
 
-params <- tibble(id = 1:5,
-                 eff = seq(0, 1.5, length.out = 5))
+nmc <- commandArgs(TRUE)[1] |> as.integer()   # no. Monte Carlo runs
+eff_a <- commandArgs(TRUE)[2] |> as.double()  # smallest effect size
+eff_b <- commandArgs(TRUE)[3] |> as.double()  # largest effect size
+steps <- commandArgs(TRUE)[4] |> as.integer() # number of steps
+nsubj <- commandArgs(TRUE)[5] |> as.integer()
+nitem <- commandArgs(TRUE)[6] |> as.integer()
+
+params <- tibble(id = seq_len(steps),
+                 eff = seq(eff_a, eff_b, length.out = steps))
 
 allsets <- params |>
-  mutate(result = map(eff, do_all,  # see also furrr::future_map()
-                      nsubj = 20, nitem = 10, nmc = nmc,
-                      mu = 800, iri_sd = 80, sri_sd = 100,
-                      srs_sd = 40, rcor = .2, err_sd = 200))
+  mutate(result = map(eff,
+                      \(.x) do_once(.x, nsubj = nsubj, nitem = nitem, nmc = nmc,
+                                    mu = 800, iri_sd = 80, sri_sd = 100,
+                                    srs_sd = 40, rcor = .2, err_sd = 200)))
                       
-
 pow_result <- allsets |>
   unnest(result) |>
   mutate(power = n_sig / N) |>
@@ -1070,7 +1062,8 @@ pow_result <- allsets |>
 
 pow_result
 
-outfile <- "power-simulation-results.rds"
+outfile <- sprintf("sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds",
+                   nmc, eff_a, eff_b, steps, nsubj, nitem)
 
 saveRDS(pow_result, outfile)
 

@@ -53,6 +53,8 @@ Once you've downloaded the archive, just extract the files, locate the file `ind
 
 You are free to re-use and modify the material in this textbook for your own purposes, with the stipulation that you cite the original work. Please note additional terms of the [Creative Commons CC-BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/) governing re-use of this material.
 
+> Barr, Dale J. (2023). Simulating power for mixed-effects models (workshop materials). Downloaded from <https://dalejbarr.github.io/aa-powersim>.
+
 The book was built using the R [**`bookdown`**](https://bookdown.org) package. The source files are available at [github](https://github.com/dalejbarr/aa-powersim).
 
 ## Found an issue? {-}

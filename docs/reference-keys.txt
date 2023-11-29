@@ -5,14 +5,12 @@ setting-up-the-environment
 rng
 iterate
 creating-tibbles
-entering-data
 save-typing-with-rep-seq-and-seq_len
 nesting
 combining-tibbles
-cartesian-join-with-tidyrcrossing
+cartesian-join-with-dplyrcross_join
 inner-join-with-dplyrinner_join
 funcs
-estimating-models-and-extracting-statistics
 power-simulation-basic-workflow
 simulating-a-dataset
 analyzing-the-data
@@ -36,7 +34,7 @@ building-the-simulation-script
 wrapping-the-code-into-generate_data
 re-write-analyze_data
 re-write-extract_stats
-re-write-do_all
+re-write-do_once
 main-code
 the-full-script-1
 references-and-further-reading

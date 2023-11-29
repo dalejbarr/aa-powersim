@@ -2,7 +2,7 @@
 
 ## Coding preliminaries
 
-If the main thing you do when using R is analyzing data, then it is likely that you haven't been exposed to many of the features of R and the tidyverse that are needed for data simulation, including random number generation (\@ref(rng)), writing custom functions (\@ref(funcs)), iteration (\@ref(iterate)), nested tables (\@ref(nesting)), handling warnings and messages (\@ref(trapping)), extracting statistics from model objects (\@ref(extract)), and running batch mode scripts (\@ref(batch)).
+If the main thing you do when using R is analyzing data, then it is likely that you haven't been exposed to many of the features of R and the tidyverse that are needed for data simulation, including random number generation (\@ref(rng)), writing custom functions (\@ref(funcs)), iteration (\@ref(iterate)), nested tables (\@ref(nesting)), handling warnings and messages (\@ref(trapping)), and extracting statistics from model objects (\@ref(extract)).
 
 We will start by providing a basic overview on each of these topics through the task of generating an R script that performs a power simulation for a one-sample t-test for various effect and sample sizes. Although there are analytical solutions for computing power for this type of test, it is worth learning the general principles before dealing with the complexities of linear mixed-effects models.
 
@@ -18,7 +18,7 @@ suppressPackageStartupMessages({
   library("dplyr")  # select(), mutate(), summarize(), inner_join()
   library("tibble") # tibble() [data entry]
   library("purrr")  # just for map()
-  library("tidyr")  # crossing(), unnest()
+  library("tidyr")  # nest(), unnest()
 
   requireNamespace("broom") # don't load, just fail if it's not there
 })
@@ -79,23 +79,382 @@ rnorm(15, mean = 600, sd = 80)
 
 ### Iterating using `purrr::map()` {#iterate}
 
+To estimate power using simulation, we need to create our function and then run it many times—maybe 1,000 or 10,000 times to get a reliable estimate. Of course, we are not going to type a function call to do it that many times; it would be tedious, and besides, we might make mistakes. What we need is something to do the iteration for us, possible changing the input to our function each time.
+
+In many programming languages, this is accomplished by writing a "for" loop. This is possible in R as well, but we're going to do this a different way which saves typing.
+
+We are going to use the function `purrr::map()`. Let's look at an example. Suppose we had a vector of integers, `x`, and wanted to compute the logarithm (`log()`) of each one. If we didn't know about `map()`, we might type the following.
+
+
+```r
+x <- c(1L, 4L, 7L, 9L, 14L) # the 'L' after each number means "long integer"
+
+log(x[1])
+log(x[2])
+log(x[3])
+log(x[4])
+log(x[5])
+```
+
+```
+## [1] 0
+## [1] 1.386294
+## [1] 1.94591
+## [1] 2.197225
+## [1] 2.639057
+```
+
+That's a lot of typing. With `map()`, we can just type this.
+
+
+```r
+map(x, log)
+```
+
+```
+## [[1]]
+## [1] 0
+## 
+## [[2]]
+## [1] 1.386294
+## 
+## [[3]]
+## [1] 1.94591
+## 
+## [[4]]
+## [1] 2.197225
+## 
+## [[5]]
+## [1] 2.639057
+```
+
+Note that the output comes in the form of a list. If we wanted the output to be a vector of doubles, we could use `map_dbl()` instead.
+
+
+```r
+map_dbl(x, log)
+```
+
+```
+## [1] 0.000000 1.386294 1.945910 2.197225 2.639057
+```
+
+Now, by default, `log()` gives the natural logarithm (using base $e$, Euler's number). What if we want to change the base? To do that we'd have to pass an additional argument `base = 2` to log within map. We could add that like so
+
+
+```r
+map_dbl(x, log, base = 2)
+```
+
+```
+## [1] 0.000000 2.000000 2.807355 3.169925 3.807355
+```
+
+But now it's unclear... is `base = 2` an argument to `map_dbl()`, or to `log()`? (Well, it's both). This makes things needlessly hard to debug. So the recommended way to do this is to call `log()` within `map()` as part of an anonymous function.
+
+
+```r
+map_dbl(x, \(.x) log(.x, base = 2))
+```
+
+```
+## [1] 0.000000 2.000000 2.807355 3.169925 3.807355
+```
+
+This allows us to call `log()` in the "normal" way (i.e., the way we would do it if typing in the console. The `\(.x)` says to R "pass along the value from `x` you're currently working with to the function on the right hand side, giving this new value `.x`". Also, making explicit the passing of the value from `map()` to the function you wish to repeat makes it easy to work with situations where the varying value is not the first argument of that function.
+
+If you have multiple arguments you need to pass to the function, you can do this using `purrr::pmap()`, whose first argument takes a list of function arguments. 
+
+For a deep dive into the topic of iteration, see <https://TODO>.
+
+**TASK: Write a call to `map_dbl()` that calculates the log of 3 but with bases varying from 2 to 7.**
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+map_dbl(2:7, \(.x) log(3, base = .x))
+```
+
+```
+## [1] 1.5849625 1.0000000 0.7924813 0.6826062 0.6131472 0.5645750
+```
+
+
+</div>
+
+
 ### Creating "tibbles"
 
-#### Entering data
+Much of what we'll be doing will involve working with datasets stored in tables, or **tabular data** (in R, a table is also called a `data.frame`). When you're analyzing data, you usually create these tables by importing data from a file (e.g., a CSV or Excel file with experiment data).
+
+When you're simulating data, you need to create these tables yourself. The `tibble` package has functions that help make this easier. For current purposes, really the only function we need from this package is `tibble::tibble()`, which is an enhanced version of the base R `data.frame()` for manual data entry.
+
+Let's assume we're creating information about the participants in a study. Each participant is given a unique `id` and we have recorded information about their age. We can enter this into a tibble() like so.
+
+
+```r
+participants <- tibble(id = c(1L, 2L, 3L, 4L, 5L),
+                       age = c(27L, 18L, 43L, 72L, 21L))
+
+participants
+```
+
+```
+## # A tibble: 5 × 2
+##      id   age
+##   <int> <int>
+## 1     1    27
+## 2     2    18
+## 3     3    43
+## 4     4    72
+## 5     5    21
+```
 
 #### Save typing with `rep()`, `seq()`, and `seq_len()`
 
+Let's now say you are going to run these participants on a [Stroop interference task](https://TODO) where they see color words printed in congruent or incongruent colors (e.g., the word "RED" printed in red font or green font) and have to name the color of the font. Let's assume that each person gets each word twice, once in the congruent condition and once in the incongruent condition. Now you want to make a table that has each of the six colors in each condition. The resulting table should look like this.
+
+
+
+We could type all that out manually but it would be tedious and prone to typos. Fortunately R has a function `rep()` that allows us to repeat values. Study the code below. until you understand how it works.
+
+
+```r
+rep(1:4, each = 3)
+```
+
+```
+##  [1] 1 1 1 2 2 2 3 3 3 4 4 4
+```
+
+
+```r
+rep(5:7, times = 4)
+```
+
+```
+##  [1] 5 6 7 5 6 7 5 6 7 5 6 7
+```
+
+
+```r
+rep(8:10, c(2, 3, 0))
+```
+
+```
+## [1] 8 8 9 9 9
+```
+
+**TASK: Write code to recreate the Stroop stimuli table shown above using `rep()` to define the column values. Name the resulting table `stimuli`.**
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+stimuli <- tibble(word = rep(c("red", "green", "blue", "yellow",
+                               "purple", "orange"), each = 2),
+                  cond = rep(c("congruent", "incongruent"), times = 6))
+```
+
+
+</div>
+
+
+Two other functions that are useful in simulation are `seq_len()` and `seq()`. Examples of these are below.
+
+
+```r
+## sequence of integers 1:length.out;
+## if length.out == 0 then 'empty'
+seq_len(length.out = 4)
+```
+
+```
+## [1] 1 2 3 4
+```
+
+
+```r
+seq(from = 2, to = 7, by = .5)
+```
+
+```
+##  [1] 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0
+```
+
+
+```r
+seq(from = 2, to = 7, length.out = 5)
+```
+
+```
+## [1] 2.00 3.25 4.50 5.75 7.00
+```
+
 #### Nested tibbles {#nesting}
+
+Tibbles, like the `data.frame` class from which they are derived, are just specialized list structures. Lists are useful as data structures because unlike vectors, each element can be of a different data type (character, integer, double, factor). To be data frames, however, it is essential that each list element has the same length (number of elements).
+
+A great feature of tibbles that differs from `data.frame` objects is that they can have columns whose values are themselves... tibbles. That is, we can have tibbles inside of tibbles, but we have to define those columns using the `list()` function.
+
+
+```r
+beatles <- tibble(name = c("John", "Paul", "Ringo", "George"),
+                  instrument = c("guitar", "bass", "drums", "guitar"))
+
+rolling_stones <- tibble(name = c("Keith", "Mick", "Charlie", "Bill"),
+                         instrument = c("guitar", "vocals", "drums", "bass"))
+
+boomer_bands <- tibble(band_name = c("Beatles", "Rolling Stones"),
+                       band_members = list(beatles, rolling_stones))
+
+boomer_bands
+```
+
+```
+## # A tibble: 2 × 2
+##   band_name      band_members    
+##   <chr>          <list>          
+## 1 Beatles        <tibble [4 × 2]>
+## 2 Rolling Stones <tibble [4 × 2]>
+```
+
+And if we then wanted to "expand" these nested tables we can do so using `tidyr::unnest()`.
+
+
+```r
+bb2 <- boomer_bands |>
+  unnest(band_members)
+
+bb2
+```
+
+```
+## # A tibble: 8 × 3
+##   band_name      name    instrument
+##   <chr>          <chr>   <chr>     
+## 1 Beatles        John    guitar    
+## 2 Beatles        Paul    bass      
+## 3 Beatles        Ringo   drums     
+## 4 Beatles        George  guitar    
+## 5 Rolling Stones Keith   guitar    
+## 6 Rolling Stones Mick    vocals    
+## 7 Rolling Stones Charlie drums     
+## 8 Rolling Stones Bill    bass
+```
+
+And if we wanted to, we can then reverse the operation.
+
+
+```r
+bb2 |>
+  nest(band_members = c(name, instrument))
+```
+
+```
+## # A tibble: 2 × 2
+##   band_name      band_members    
+##   <chr>          <list>          
+## 1 Beatles        <tibble [4 × 2]>
+## 2 Rolling Stones <tibble [4 × 2]>
+```
+
+Why is this useful? Well, mostly because it elegantly allows us to account for the multilevel structure of data, such as when you have trials nested within participants. But we'll see shortly how we can combine this with `map()` (which returns a list) to make columns whose elements are tibbles of simulated data, or analyses performed on those tibbles.
 
 ### Combining tibbles
 
-#### Cartesian join with `tidyr::crossing()`
+Often you'll end up with data scattered across different tables and need to merge it into a single table. The tidyverse provides powerful and efficient functions for merging data.
+
+#### Cartesian join with `dplyr::cross_join()`
+
+Occasionally what we want to do is combine all possible combinations of rows across two tables, in what is known as a "Cartesian join." For this, we can use the function `dplyr::cross_join()`. This is easiest to explain by an example.
+
+
+```r
+some_letters <- tibble(letter = c("A", "B", "C"))
+
+some_numbers <- tibble(numbers = seq_len(3))
+
+cross_join(some_letters, some_numbers)
+```
+
+```
+## # A tibble: 9 × 2
+##   letter numbers
+##   <chr>    <int>
+## 1 A            1
+## 2 A            2
+## 3 A            3
+## 4 B            1
+## 5 B            2
+## 6 B            3
+## 7 C            1
+## 8 C            2
+## 9 C            3
+```
+
+**TASK: Above, we created the table `participants` and `stimuli`. Combine these two tables to create a table `trials` which creates all the possible trials in an experiment where each participant sees each stimulus once. The resulting table should have 60 rows, but don't include 'age' in the output.**
+
+
+```r
+trials <- cross_join(participants |> select(id),
+                     stimuli)
+
+trials
+```
+
+```
+## # A tibble: 60 × 3
+##       id word   cond       
+##    <int> <chr>  <chr>      
+##  1     1 red    congruent  
+##  2     1 red    incongruent
+##  3     1 green  congruent  
+##  4     1 green  incongruent
+##  5     1 blue   congruent  
+##  6     1 blue   incongruent
+##  7     1 yellow congruent  
+##  8     1 yellow incongruent
+##  9     1 purple congruent  
+## 10     1 purple incongruent
+## # ℹ 50 more rows
+```
 
 #### Inner join with `dplyr::inner_join()`
 
-### Writing custom functions {#funcs}
+Sometimes what you need to do is combine information from two tables but you don't want all possible combinations; rather, you want to keep the rows from both tables that match on certain 'key' values.
 
-### Estimating models and extracting statistics
+For example, in the `participants` table we have each participant's age. If we wanted to combine that information with the information in `trials` (e.g., in order to analyze Stroop interference across age), then we'd need a way to get the `age` variable into `trials`. For this we can use an `inner_join()`, specifying the `key` column in the `by` argument to the function.
+
+
+```r
+participants |>
+  inner_join(trials, by = join_by(id))
+```
+
+```
+## # A tibble: 60 × 4
+##       id   age word   cond       
+##    <int> <int> <chr>  <chr>      
+##  1     1    27 red    congruent  
+##  2     1    27 red    incongruent
+##  3     1    27 green  congruent  
+##  4     1    27 green  incongruent
+##  5     1    27 blue   congruent  
+##  6     1    27 blue   incongruent
+##  7     1    27 yellow congruent  
+##  8     1    27 yellow incongruent
+##  9     1    27 purple congruent  
+## 10     1    27 purple incongruent
+## # ℹ 50 more rows
+```
+
+### Writing custom functions {#funcs}
 
 ## Power simulation: Basic workflow
 
@@ -108,9 +467,9 @@ Now that we've gone over the programming basics, we are ready to start building 
 
 ### Simulating a dataset
 
-The first thing to do is to write (and test) a function `generate_data()` that takes population parameters and sample size info as input and creates simulated data as output.
+The first thing to do is to write (and test) a function `generate_data()` that takes population parameters and sample size info as input and creates simulated data as output using `rnorm()`.
 
-**TASK: write a function `generate_data()` that takes three arguments as input: `eff` (the population intercept parameter), `nsubj` (number of subjects), and `sd` (the standard deviation, which should default to 1).**
+**TASK: write a function `generate_data()` that takes three arguments as input: `eff` (the population intercept parameter), `nsubj` (number of subjects), and `sd` (the standard deviation, which should default to 1). The resulting table should have two columns, `subj_id` and `dv` (dependent variable; i.e., the result from `rnorm()`).**
 
 To test your function, run the code below and see if the output matches exactly.
 
@@ -561,7 +920,7 @@ suppressPackageStartupMessages({
   library("dplyr")  # select(), mutate(), summarize(), inner_join()
   library("tibble") # tibble() [data entry]
   library("purrr")  # just for map()
-  library("tidyr")  # crossing(), unnest()
+  library("tidyr")  # nest(), unnest()
 
   requireNamespace("broom") # don't load, just fail if it's not there
 })
@@ -616,6 +975,11 @@ do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
 pow_result <- tibble(eff = seq(0, 1.2, length.out = 5),
                      pow = map(eff, \(.x) do_once(100, .x, 20, 1))) |>
   unnest(pow)
+
+outfile <- "simulation-results-one-sample.rds"
+
+saveRDS(pow_result, file = outfile)
+message("saved results to '", ofile, "'")
 ```
 
 
