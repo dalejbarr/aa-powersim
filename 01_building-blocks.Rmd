@@ -588,7 +588,6 @@ do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
 }
 ```
 
-
 OK, now that you've got this far, you should take a step back and celebrate that you have a function, `do_once()`, that runs a power simulation given the population parameters, alpha level, and sample size as user input. 
 
 ### Calculating power curves
@@ -597,7 +596,7 @@ So, we've now calculated a power curve for a *single parameter setting*. But we 
 
 Well, given that we've encapulated the guts of our simulation in a single function, it is a simple matter of just calling that function repeatedly with different inputs and storing the results. Sound familiar?
 
-**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from zero to 1.5. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `1000` respectively).**
+**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from 0 to 1. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `1000` respectively).**
 
 If you set the seed to 1451 before you run it, then print it out, the resulting table should look like this.
 
@@ -605,8 +604,8 @@ If you set the seed to 1451 before you run it, then print it out, the resulting 
 set.seed(1451)
 ```
 
-```{r param-values, echo=FALSE}
-pow_result <- tibble(eff = seq(0, 1.2, length.out = 5),
+```{r param-values, echo=FALSE, message=FALSE}
+pow_result <- tibble(eff = seq(0, 1, length.out = 5),
                      pow = map(eff, \(.x) do_once(1000, .x, 20, 1))) |>
   unnest(pow)
 ```
@@ -618,7 +617,7 @@ pow_result
 `r hide("Hint about creating a sequence")`
 
 ```{r, eval=FALSE}
-seq(0, 1.2, length.out = 5)
+seq(0, 1, length.out = 5)
 ```
 
 `r unhide()`

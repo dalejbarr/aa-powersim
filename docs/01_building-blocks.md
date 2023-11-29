@@ -983,7 +983,6 @@ do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
 }
 ```
 
-
 OK, now that you've got this far, you should take a step back and celebrate that you have a function, `do_once()`, that runs a power simulation given the population parameters, alpha level, and sample size as user input. 
 
 ### Calculating power curves
@@ -992,43 +991,24 @@ So, we've now calculated a power curve for a *single parameter setting*. But we 
 
 Well, given that we've encapulated the guts of our simulation in a single function, it is a simple matter of just calling that function repeatedly with different inputs and storing the results. Sound familiar?
 
-**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from zero to 1.5. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `1000` respectively).**
+**TASK: Create a tibble with parameter values for `eff` (effect size) going in 5 steps from 0 to 1. The tibble should have a column `pow`, which has the results from `do_once()` called for that value of `eff` (and with `nsubj`, `sd`, and `nmc` held constant at `20`, `1`, and `1000` respectively).**
 
 If you set the seed to 1451 before you run it, then print it out, the resulting table should look like this.
 
 
 
 
-```
-## computing power over 1000 runs with eff=0; nsubj=20; sd = 1; alpha = 0.05
-```
-
-```
-## computing power over 1000 runs with eff=0.3; nsubj=20; sd = 1; alpha = 0.05
-```
-
-```
-## computing power over 1000 runs with eff=0.6; nsubj=20; sd = 1; alpha = 0.05
-```
-
-```
-## computing power over 1000 runs with eff=0.9; nsubj=20; sd = 1; alpha = 0.05
-```
-
-```
-## computing power over 1000 runs with eff=1.2; nsubj=20; sd = 1; alpha = 0.05
-```
 
 
 ```
 ## # A tibble: 5 × 4
 ##     eff  nsig     N power
 ##   <dbl> <int> <int> <dbl>
-## 1   0      47  1000 0.047
-## 2   0.3   262  1000 0.262
-## 3   0.6   719  1000 0.719
-## 4   0.9   976  1000 0.976
-## 5   1.2   999  1000 0.999
+## 1  0       47  1000 0.047
+## 2  0.25   203  1000 0.203
+## 3  0.5    576  1000 0.576
+## 4  0.75   900  1000 0.9  
+## 5  1      987  1000 0.987
 ```
 
 
@@ -1037,7 +1017,7 @@ If you set the seed to 1451 before you run it, then print it out, the resulting 
 
 
 ```r
-seq(0, 1.2, length.out = 5)
+seq(0, 1, length.out = 5)
 ```
 
 
@@ -1067,7 +1047,7 @@ pow_result
 
 
 ```r
-pow_result <- tibble(eff = seq(0, 1.2, length.out = 5),
+pow_result <- tibble(eff = seq(0, 1, length.out = 5),
                      pow = map(eff, \(.x) do_once(1000, .x, 20, 1))) |>
   unnest(pow)
 ```
@@ -1164,7 +1144,7 @@ do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
 
 ## TODO: possibly set the seed to something for reproducibility?
 
-pow_result <- tibble(eff = seq(0, 1.2, length.out = 5),
+pow_result <- tibble(eff = seq(0, 1, length.out = 5),
                      pow = map(eff, \(.x) do_once(1000, .x, 20, 1))) |>
   unnest(pow)
 

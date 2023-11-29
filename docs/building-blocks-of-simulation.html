@@ -753,44 +753,39 @@ Solution
 </h3>
 <p>So, we've now calculated a power curve for a <em>single parameter setting</em>. But we usually want to calculate a power <em>curve</em> so that we can see how power varies as a function of some parameter (usually, effect size and sample size). How can we do that?</p>
 <p>Well, given that we've encapulated the guts of our simulation in a single function, it is a simple matter of just calling that function repeatedly with different inputs and storing the results. Sound familiar?</p>
-<p><strong>TASK: Create a tibble with parameter values for <code>eff</code> (effect size) going in 5 steps from zero to 1.5. The tibble should have a column <code>pow</code>, which has the results from <code>do_once()</code> called for that value of <code>eff</code> (and with <code>nsubj</code>, <code>sd</code>, and <code>nmc</code> held constant at <code>20</code>, <code>1</code>, and <code>1000</code> respectively).</strong></p>
+<p><strong>TASK: Create a tibble with parameter values for <code>eff</code> (effect size) going in 5 steps from 0 to 1. The tibble should have a column <code>pow</code>, which has the results from <code>do_once()</code> called for that value of <code>eff</code> (and with <code>nsubj</code>, <code>sd</code>, and <code>nmc</code> held constant at <code>20</code>, <code>1</code>, and <code>1000</code> respectively).</strong></p>
 <p>If you set the seed to 1451 before you run it, then print it out, the resulting table should look like this.</p>
-<pre><code>## computing power over 1000 runs with eff=0; nsubj=20; sd = 1; alpha = 0.05</code></pre>
-<pre><code>## computing power over 1000 runs with eff=0.3; nsubj=20; sd = 1; alpha = 0.05</code></pre>
-<pre><code>## computing power over 1000 runs with eff=0.6; nsubj=20; sd = 1; alpha = 0.05</code></pre>
-<pre><code>## computing power over 1000 runs with eff=0.9; nsubj=20; sd = 1; alpha = 0.05</code></pre>
-<pre><code>## computing power over 1000 runs with eff=1.2; nsubj=20; sd = 1; alpha = 0.05</code></pre>
 <pre><code>## # A tibble: 5 × 4
 ##     eff  nsig     N power
 ##   &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
-## 1   0      47  1000 0.047
-## 2   0.3   262  1000 0.262
-## 3   0.6   719  1000 0.719
-## 4   0.9   976  1000 0.976
-## 5   1.2   999  1000 0.999</code></pre>
+## 1  0       47  1000 0.047
+## 2  0.25   203  1000 0.203
+## 3  0.5    576  1000 0.576
+## 4  0.75   900  1000 0.9  
+## 5  1      987  1000 0.987</code></pre>
 <div class="webex-solution">
 <button>
 Hint about creating a sequence
 </button>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.2</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="webex-solution">
 <button>
 Hint: General idea about how the code should look
 </button>
-<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="building-blocks-of-simulation.html#cb87-1" aria-hidden="true"></a>pow_result &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">eff =</span> <span class="kw">seq</span>(???),</span>
-<span id="cb87-2"><a href="building-blocks-of-simulation.html#cb87-2" aria-hidden="true"></a>                     <span class="dt">pow =</span> <span class="kw">map</span>(eff, ???)) <span class="op">|</span><span class="er">&gt;</span></span>
-<span id="cb87-3"><a href="building-blocks-of-simulation.html#cb87-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">unnest</span>(pow)</span>
-<span id="cb87-4"><a href="building-blocks-of-simulation.html#cb87-4" aria-hidden="true"></a></span>
-<span id="cb87-5"><a href="building-blocks-of-simulation.html#cb87-5" aria-hidden="true"></a>pow_result</span></code></pre></div>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="building-blocks-of-simulation.html#cb82-1" aria-hidden="true"></a>pow_result &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">eff =</span> <span class="kw">seq</span>(???),</span>
+<span id="cb82-2"><a href="building-blocks-of-simulation.html#cb82-2" aria-hidden="true"></a>                     <span class="dt">pow =</span> <span class="kw">map</span>(eff, ???)) <span class="op">|</span><span class="er">&gt;</span></span>
+<span id="cb82-3"><a href="building-blocks-of-simulation.html#cb82-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">unnest</span>(pow)</span>
+<span id="cb82-4"><a href="building-blocks-of-simulation.html#cb82-4" aria-hidden="true"></a></span>
+<span id="cb82-5"><a href="building-blocks-of-simulation.html#cb82-5" aria-hidden="true"></a>pow_result</span></code></pre></div>
 </div>
 <div class="webex-solution">
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.2</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>                     pow <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="fl">1000</span>, <span class="va">.x</span>, <span class="fl">20</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">pow</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -805,7 +800,7 @@ Solution
 <button>
 See the full script
 </button>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#############################</span></span>
 <span><span class="co">## ADD-ON PACKAGES</span></span>
 <span></span>
@@ -884,7 +879,7 @@ See the full script
 <span></span>
 <span><span class="co">## TODO: possibly set the seed to something for reproducibility?</span></span>
 <span></span>
-<span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.2</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
+<span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>                     pow <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="fl">1000</span>, <span class="va">.x</span>, <span class="fl">20</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">pow</span><span class="op">)</span></span>
 <span></span>
