@@ -502,35 +502,34 @@ Now that you have created simulated data, estimate the model using `lme4::lmer()
 
 ```r
 mod_sim <- lmer(Y ~ cond + (1 + cond | subj_id) + (1 | item_id),
-                dat_sim2, REML = FALSE)
+                dat_sim2)
 
 summary(mod_sim, corr = FALSE)
 ```
 
 ```
-## Linear mixed model fit by maximum likelihood  ['lmerMod']
+## Linear mixed model fit by REML ['lmerMod']
 ## Formula: Y ~ cond + (1 + cond | subj_id) + (1 | item_id)
 ##    Data: dat_sim2
 ## 
-##      AIC      BIC   logLik deviance df.resid 
-##  67657.9  67703.6 -33822.0  67643.9     4993 
+## REML criterion at convergence: 67628.2
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -3.7634 -0.6571 -0.0058  0.6572  3.2204 
+## -3.7640 -0.6570 -0.0054  0.6561  3.2214 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev. Corr
-##  subj_id  (Intercept) 10283.1  101.41       
-##           cond          993.8   31.52   0.13
-##  item_id  (Intercept)  7397.3   86.01       
-##  Residual             40296.4  200.74       
+##  subj_id  (Intercept) 10331.8  101.65       
+##           cond          996.5   31.57   0.13
+##  item_id  (Intercept)  7655.8   87.50       
+##  Residual             40295.6  200.74       
 ## Number of obs: 5000, groups:  subj_id, 100; item_id, 50
 ## 
 ## Fixed effects:
 ##             Estimate Std. Error t value
-## (Intercept)   784.73      16.09  48.776
-## cond           76.01      25.18   3.019
+## (Intercept)   784.73      16.26  48.252
+## cond           76.01      25.59   2.971
 ```
 
 
@@ -566,11 +565,11 @@ Now try to find estimates of random effects parameters $\tau_{00}$, $\tau_{11}$,
 
 |parameter           |variable | input| estimate|
 |:-------------------|:--------|-----:|--------:|
-|$\hat{\tau}_{00}$   |`sri_sd` | 100.0|  101.405|
-|$\hat{\tau}_{11}$   |`srs_sd` |  40.0|   31.524|
+|$\hat{\tau}_{00}$   |`sri_sd` | 100.0|  101.646|
+|$\hat{\tau}_{11}$   |`srs_sd` |  40.0|   31.567|
 |$\hat{\rho}$        |`rcor`   |   0.2|    0.130|
-|$\hat{\omega}_{00}$ |`iri_sd` |  80.0|   86.008|
-|$\hat{\sigma}$      |`err_sd` | 200.0|  200.740|
+|$\hat{\omega}_{00}$ |`iri_sd` |  80.0|   87.498|
+|$\hat{\sigma}$      |`err_sd` | 200.0|  200.738|
 
 
 </div>
@@ -695,11 +694,13 @@ analyze_data <- function(dat) {
 
 ### Re-write `extract_stats()`
 
-Currently, `extract_stats()` only pulls out information about the intercept term.
+In the last section, we wrote the function `extract_stats()` to pull out statistics from a t-test object.
 
-Let's change it so it gets information about the coefficient of `cond`.
+Let's change it so it gets information about the regression coefficient (fixed effect) for `cond`. Unfortunately we can't use `broom::tidy()` here.
 
-Because this function calls `check_converged()`, we need to copy that into our session too.
+Recall that we have suppressed any messages about singularity or nonconvergence. We want to track this information, so we'll get it from the fitted model object. 
+
+To find out whether a fit is singular, we can use the function `isSingular()`. Figuring out whether a model has converged is more complicate. Use the helper function `check_converged()` below. This takes a fitted model object as input and returns `TRUE` if the model converged, `FALSE` otherwise.
 
 
 ```r
@@ -711,18 +712,33 @@ check_converged <- function(mobj) {
 }
 ```
 
-And here's our previous version of `extract_stats()` that you need to change.
+Use `fixef()` to get the fixed effects estimates from the model.
+
+You'll also want to get the standard error for the fixed effects. You can do so using the code 
 
 
 ```r
-extract_stats <- function(mobj) {
-  tibble(sing = isSingular(mobj),
-         conv = check_converged(mobj),
-         estimate = fixef(mobj)[1],
-         stderr = sqrt(diag(vcov(mobj)))[1],
-         tval = estimate / stderr,
-         pval = 2 * (1 - pnorm(abs(tval))))
-}
+sqrt(diag(vcov(mobj)))
+```
+
+where `mobj` is the name of the fitted model object. We'll then calculate a $p$ value based on Wald $z$, which is just the estimate divided by its standard error, and then treated as a $z$ statistic (from the standard normal distribution). If we call that statistic `tval`, you can get the $p$ value using `2 * (1 - pnorm(abs(tval)))`.
+
+**TASK: Write a new version of `extract_stats()` that takes `mobj`, a fitted model object as input, and returns a tibble with columns `sing` (`TRUE` for singular fit, `FALSE` otherwise), `conv` (`TRUE` for converged, `FALSE` otherwise), `estimate` with the fixed effect estimate for the effect of `cond`, `stderr` for the standard error, `tval` for the $t$-value, and `pval` for the $p$-value.**
+
+Test it by running it out on `mod_sim` which you estimated above. You should get the results like the following.
+
+
+
+
+```r
+extract_stats(mod_sim)
+```
+
+```
+## # A tibble: 1 × 6
+##   sing  conv  estimate stderr  tval    pval
+##   <lgl> <lgl>    <dbl>  <dbl> <dbl>   <dbl>
+## 1 FALSE TRUE      76.0   25.6  2.97 0.00297
 ```
 
 
@@ -745,45 +761,93 @@ extract_stats <- function(mobj) {
 </div>
 
 
-### Re-write `do_once()`
-
-The function `do_once()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function `full_results()` which can be used as it is, and is repeated here so that you can conveniently paste it into your script.
+Now we have completed the three main functions for a single run as shown in \@ref(fig:flow-img). We can try them out like this:
 
 
 ```r
-full_results <- function(x, alpha = .05) {
-  ## after completing all the Monte Carlo runs for a set,
-  ## calculate statistics
-  x |>
-    select(run_id, stats) |>
-    unnest(stats) |>
-    summarize(n_sing = sum(sing),
-              n_unconv = sum(!conv),
-              n_sig = sum(pval < alpha),
-              N = n())
+generate_data(eff = 0, nsubj = 20, nitem = 10,
+              mu = 800, iri_sd = 80, sri_sd = 100,
+              srs_sd = 40, rcor = .2, err_sd = 200) |>
+  analyze_data() |>
+  extract_stats()
+```
+
+```
+## # A tibble: 1 × 6
+##   sing  conv  estimate stderr   tval  pval
+##   <lgl> <lgl>    <dbl>  <dbl>  <dbl> <dbl>
+## 1 FALSE TRUE     -55.9   63.0 -0.888 0.375
+```
+
+The next step will be to wrap this in a function.
+
+### Re-write `do_once()`
+
+The function `do_once()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. 
+
+Now let's re-write `do_once()`. Here's starter code from the function we created for the one-sample t-test context. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
+
+
+```r
+do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
+
+  message("computing power over ", nmc, " runs with eff=",
+          eff, "; nsubj=", nsubj, "; sd = ", sd, "; alpha = ", alpha)
+  
+  tibble(run_id = seq_len(nmc),
+         dat = map(run_id, \(.x) generate_data(eff, nsubj, sd)),
+         mobj = map(dat, \(.x) analyze_data(.x)),
+         stats = map(mobj, \(.x) extract_stats(.x)))
 }
 ```
 
-Now let's re-write `do_once()`. Here's starter code. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
+It doesn't do everything we need (yet) because in the end we'll want to `compute_power()` and return that instead. But we'll save that for later.
+
+
+
+Try it out with the code below. Results should look as follows.
 
 
 ```r
-do_once <- function(eff, nmc, nsubj, ntrials) {
-  ## generate, analyze, and extract for a single parameter setting
-  ## you shouldn't need to change anything about this function except
-  ## the arguments and paramemters passed to generate_data()
-  message("computing stats over ", nmc,
-          " runs for nsubj=", nsubj, "; ",
-          "ntrials=", ntrials, "; ",
-          "eff=", eff)
-  dat_full <- tibble(run_id = seq_len(nmc)) |>
-    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, ntrials),
-           mobj = map(dat, \(.x) analyze_data(.x)),
-           stats = map(mobj, \(.x) extract_stats(.x))))
-  
-  bind_cols(tibble(fdat = list(dat_full)),
-            full_results(dat_full))
-}
+set.seed(1451)
+
+do_test <- do_once(eff = 0, nsubj = 20, nitem = 10, nmc = 20,
+                   mu = 800, iri_sd = 80, sri_sd = 100,
+                   srs_sd = 40, rcor = .2, err_sd = 200)
+```
+
+```
+## computing stats over 20 runs for nsubj=20; nitem=10; eff=0
+```
+
+```r
+do_test
+```
+
+```
+## # A tibble: 20 × 4
+##    run_id dat                mobj      stats           
+##     <int> <list>             <list>    <list>          
+##  1      1 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  2      2 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  3      3 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  4      4 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  5      5 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  6      6 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  7      7 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  8      8 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+##  9      9 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 10     10 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 11     11 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 12     12 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 13     13 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 14     14 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 15     15 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 16     16 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 17     17 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 18     18 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 19     19 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
+## 20     20 <tibble [200 × 4]> <lmerMod> <tibble [1 × 6]>
 ```
 
 
@@ -800,15 +864,180 @@ do_once <- function(eff, nsubj, nitem, nmc,
           " runs for nsubj=", nsubj, "; ",
           "nitem=", nitem, "; ",
           "eff=", eff)
-  dat_full <- tibble(run_id = seq_len(nmc)) |>
+  tibble(run_id = seq_len(nmc)) |>
     mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
                                                  mu, iri_sd, sri_sd,
                                                  srs_sd, rcor, err_sd)),
            mobj = map(dat, \(.x) analyze_data(.x)),
            stats = map(mobj, \(.x) extract_stats(.x)))
+}
+```
+
+
+</div>
+
+
+### Update `do_once()` to return statistics
+
+We're nearly there. Our `do_once()` function returns the raw data from the run, but what we'd really like instead are the power statistics. So we'll need to re-write `compute_power()` and then include that in `do_once()`. We stored the results of the (old) `do_once()` in `do_test`, which is useful for testing it out. 
+
+Recall that we can get all the stats into a single table like so.
+
+
+```r
+do_test |>
+  select(run_id, stats) |>
+  unnest(stats)
+```
+
+```
+## # A tibble: 20 × 7
+##    run_id sing  conv  estimate stderr    tval   pval
+##     <int> <lgl> <lgl>    <dbl>  <dbl>   <dbl>  <dbl>
+##  1      1 TRUE  FALSE    74.7    72.0  1.04   0.300 
+##  2      2 TRUE  FALSE    91.5    61.6  1.49   0.137 
+##  3      3 TRUE  FALSE    68.6    29.6  2.32   0.0205
+##  4      4 FALSE TRUE     -9.17   42.0 -0.218  0.827 
+##  5      5 TRUE  FALSE   -36.0    79.1 -0.455  0.649 
+##  6      6 TRUE  FALSE   -86.2    37.0 -2.33   0.0199
+##  7      7 TRUE  FALSE    -3.02   56.5 -0.0534 0.957 
+##  8      8 TRUE  FALSE   -68.8    69.1 -0.995  0.320 
+##  9      9 TRUE  FALSE   -11.6    91.9 -0.126  0.900 
+## 10     10 FALSE TRUE    128.     77.3  1.66   0.0979
+## 11     11 TRUE  FALSE   -12.1    57.5 -0.211  0.833 
+## 12     12 FALSE TRUE     33.5    59.5  0.562  0.574 
+## 13     13 TRUE  FALSE    58.9    62.4  0.944  0.345 
+## 14     14 FALSE TRUE      9.97   66.3  0.150  0.880 
+## 15     15 TRUE  FALSE  -127.     51.1 -2.49   0.0128
+## 16     16 FALSE TRUE      2.55   66.0  0.0386 0.969 
+## 17     17 TRUE  FALSE   115.     60.0  1.91   0.0557
+## 18     18 TRUE  FALSE   -28.0    58.5 -0.478  0.633 
+## 19     19 TRUE  FALSE    64.5    53.8  1.20   0.231 
+## 20     20 TRUE  FALSE   -55.5    63.7 -0.872  0.383
+```
+
+**TASK: Write `compute_power()` to provide not only power information, but also reports the proportion of runs that had a 'singularity' message (`n_sing`) or that did not converge (`n_nonconv`).**
+
+Results should look like so.
+
+
+```r
+compute_power <- function(x, alpha = .05) {
+  ## after completing all the Monte Carlo runs for a set,
+  ## calculate statistics
+  x |>
+    select(run_id, stats) |>
+    unnest(stats) |>
+    summarize(n_sing = sum(sing),
+              n_nonconv = sum(!conv), 
+              n_sig = sum(pval < alpha),
+              N = n(),
+              power = n_sig / N)
+}
+```
+
+
+```r
+do_test |>
+  compute_power()
+```
+
+```
+## # A tibble: 1 × 5
+##   n_sing n_nonconv n_sig     N power
+##    <int>     <int> <int> <int> <dbl>
+## 1     15        15     3    20  0.15
+```
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+compute_power <- function(x, alpha = .05) {
+  ## after completing all the Monte Carlo runs for a set,
+  ## calculate statistics
+  x |>
+    select(run_id, stats) |>
+    unnest(stats) |>
+    summarize(n_sing = sum(sing),
+              n_nonconv = sum(!conv), 
+              n_sig = sum(pval < alpha),
+              N = n(),
+              power = n_sig / N)
+}
+```
+
+
+</div>
+
+
+**TASK: update `do_once()` so that it ends with `compute_power()`.**
+
+
+```r
+do_once <- function(eff, nsubj, nitem, nmc,
+                   mu, iri_sd, sri_sd,
+                   srs_sd, rcor, err_sd) {
+  ## generate, analyze, and extract for a single parameter setting
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "nitem=", nitem, "; ",
+          "eff=", eff)
   
-  bind_cols(tibble(fdat = list(dat_full)),
-            full_results(dat_full))
+  tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
+                                                 mu, iri_sd, sri_sd,
+                                                 srs_sd, rcor, err_sd)),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x))) |>
+  compute_power()
+}
+```
+
+
+```r
+set.seed(1451)
+
+do_once(eff = 0, nsubj = 20, nitem = 10, nmc = 20,
+                   mu = 800, iri_sd = 80, sri_sd = 100,
+                   srs_sd = 40, rcor = .2, err_sd = 200)
+```
+
+```
+## computing stats over 20 runs for nsubj=20; nitem=10; eff=0
+```
+
+```
+## # A tibble: 1 × 5
+##   n_sing n_nonconv n_sig     N power
+##    <int>     <int> <int> <int> <dbl>
+## 1     15        15     3    20  0.15
+```
+
+
+<div class='webex-solution'><button>Solution</button>
+
+
+
+```r
+do_once <- function(eff, nsubj, nitem, nmc,
+                   mu, iri_sd, sri_sd,
+                   srs_sd, rcor, err_sd) {
+  ## generate, analyze, and extract for a single parameter setting
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "nitem=", nitem, "; ",
+          "eff=", eff)
+  
+  tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
+                                                 mu, iri_sd, sri_sd,
+                                                 srs_sd, rcor, err_sd)),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x))) |>
+  compute_power()
 }
 ```
 
@@ -818,53 +1047,7 @@ do_once <- function(eff, nsubj, nitem, nmc,
 
 ### Main code
 
-Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining `allsets` so that it calls `do_once()` with the new parameter settings. The rest you can just copy.
-
-
-
-
-
-
-```r
-set.seed(1451) # for deterministic output
-
-## determine effect sizes, nsubj, nitem, and nmc from the command line
-if (length(commandArgs(TRUE)) != 6L) {
-  stop("need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'")
-}
-
-nmc <- commandArgs(TRUE)[1] |> as.integer()   # no. Monte Carlo runs
-eff_a <- commandArgs(TRUE)[2] |> as.double()  # smallest effect size
-eff_b <- commandArgs(TRUE)[3] |> as.double()  # largest effect size
-steps <- commandArgs(TRUE)[4] |> as.integer() # number of steps
-nsubj <- commandArgs(TRUE)[5] |> as.integer()
-nitem <- commandArgs(TRUE)[6] |> as.integer()
-
-params <- tibble(id = seq_len(steps),
-                 eff = seq(eff_a, eff_b, length.out = steps))
-
-allsets <- params |>
-  mutate(result = map(eff,
-                      \(.x) do_once(.x))) ## add remaining args
-
-pow_result <- allsets |>
-  unnest(result) |>
-  mutate(power = n_sig / N) |>
-  select(-fdat)
-
-pow_result
-
-outfile <- sprintf("sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds",
-                   nmc, eff_a, eff_b, steps, nsubj, nitem)
-
-saveRDS(pow_result, outfile)
-
-message("results saved to '", outfile, "'")
-```
-
-
-<div class='webex-solution'><button>Solution</button>
-
+Now that we've re-written all of the functions, let's add the following lines to create a fully reproducible script that we can run in batch mode.
 
 
 ```r
@@ -892,9 +1075,7 @@ allsets <- params |>
                                     srs_sd = 40, rcor = .2, err_sd = 200)))
                       
 pow_result <- allsets |>
-  unnest(result) |>
-  mutate(power = n_sig / N) |>
-  select(-fdat)
+  unnest(result)
 
 pow_result
 
@@ -905,10 +1086,6 @@ saveRDS(pow_result, outfile)
 
 message("results saved to '", outfile, "'")
 ```
-
-
-</div>
-
 
 ### The full script
 
@@ -998,16 +1175,17 @@ check_converged <- function(mobj) {
   is.null(sm$optinfo$conv$lme4$messages)
 }
 
-full_results <- function(x, alpha = .05) {
+compute_power <- function(x, alpha = .05) {
   ## after completing all the Monte Carlo runs for a set,
   ## calculate statistics
   x |>
     select(run_id, stats) |>
     unnest(stats) |>
     summarize(n_sing = sum(sing),
-              n_unconv = sum(!conv),
+              n_nonconv = sum(!conv), 
               n_sig = sum(pval < alpha),
-              N = n())
+              N = n(),
+              power = n_sig / N)
 }
 
 do_once <- function(eff, nsubj, nitem, nmc,
@@ -1018,15 +1196,14 @@ do_once <- function(eff, nsubj, nitem, nmc,
           " runs for nsubj=", nsubj, "; ",
           "nitem=", nitem, "; ",
           "eff=", eff)
-  dat_full <- tibble(run_id = seq_len(nmc)) |>
+  
+  tibble(run_id = seq_len(nmc)) |>
     mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
                                                  mu, iri_sd, sri_sd,
                                                  srs_sd, rcor, err_sd)),
            mobj = map(dat, \(.x) analyze_data(.x)),
-           stats = map(mobj, \(.x) extract_stats(.x)))
-  
-  bind_cols(tibble(fdat = list(dat_full)),
-            full_results(dat_full))
+           stats = map(mobj, \(.x) extract_stats(.x))) |>
+  compute_power()
 }
 
 #############################
@@ -1056,9 +1233,7 @@ allsets <- params |>
                                     srs_sd = 40, rcor = .2, err_sd = 200)))
                       
 pow_result <- allsets |>
-  unnest(result) |>
-  mutate(power = n_sig / N) |>
-  select(-fdat)
+  unnest(result)
 
 pow_result
 
@@ -1068,4 +1243,50 @@ outfile <- sprintf("sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds",
 saveRDS(pow_result, outfile)
 
 message("results saved to '", outfile, "'")
+```
+
+## Running in batch mode
+
+Now let's run our power simulation.
+
+Save the full script into a file named `my-power-script.R`.
+
+Go to your operating system's command line (or do so in RStudio), and navigate to the directory where you saved it.
+
+At the command line, type
+
+```
+Rscript my-power-script.R
+```
+
+This should produce an error because you haven't specified any command line arguments.
+
+```
+Error: need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'
+Execution halted
+```
+
+Let's try again, putting in arguments in that order.
+
+```
+Rscript my-power-script.R 1000 0 160 5 40 20
+```
+
+It worked!
+
+```
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=0
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=40
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=80
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=120
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=160
+# A tibble: 5 × 7
+     id   eff n_sing n_nonconv n_sig     N power
+  <int> <dbl>  <int>     <int> <int> <int> <dbl>
+1     1     0    298       309    64  1000 0.064
+2     2    40    257       270   200  1000 0.2
+3     3    80    282       293   577  1000 0.577
+4     4   120    271       283   844  1000 0.844
+5     5   160    279       287   982  1000 0.982
+results saved to 'sim-results_1000_0.00_160.00_5_40_20.rds'
 ```

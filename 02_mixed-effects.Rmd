@@ -286,7 +286,7 @@ Now that you have created simulated data, estimate the model using `lme4::lmer()
 
 ```{r fit-model}
 mod_sim <- lmer(Y ~ cond + (1 + cond | subj_id) + (1 | item_id),
-                dat_sim2, REML = FALSE)
+                dat_sim2)
 
 summary(mod_sim, corr = FALSE)
 ```
@@ -441,11 +441,13 @@ analyze_data <- function(dat) {
 
 ### Re-write `extract_stats()`
 
-Currently, `extract_stats()` only pulls out information about the intercept term.
+In the last section, we wrote the function `extract_stats()` to pull out statistics from a t-test object.
 
-Let's change it so it gets information about the coefficient of `cond`.
+Let's change it so it gets information about the regression coefficient (fixed effect) for `cond`. Unfortunately we can't use `broom::tidy()` here.
 
-Because this function calls `check_converged()`, we need to copy that into our session too.
+Recall that we have suppressed any messages about singularity or nonconvergence. We want to track this information, so we'll get it from the fitted model object. 
+
+To find out whether a fit is singular, we can use the function `isSingular()`. Figuring out whether a model has converged is more complicate. Use the helper function `check_converged()` below. This takes a fitted model object as input and returns `TRUE` if the model converged, `FALSE` otherwise.
 
 ```{r check-converged}
 check_converged <- function(mobj) {
@@ -456,22 +458,21 @@ check_converged <- function(mobj) {
 }
 ```
 
-And here's our previous version of `extract_stats()` that you need to change.
+Use `fixef()` to get the fixed effects estimates from the model.
 
-```{r extract-stub}
-extract_stats <- function(mobj) {
-  tibble(sing = isSingular(mobj),
-         conv = check_converged(mobj),
-         estimate = fixef(mobj)[1],
-         stderr = sqrt(diag(vcov(mobj)))[1],
-         tval = estimate / stderr,
-         pval = 2 * (1 - pnorm(abs(tval))))
-}
+You'll also want to get the standard error for the fixed effects. You can do so using the code 
+
+```{r, eval=FALSE}
+sqrt(diag(vcov(mobj)))
 ```
 
-`r hide("Solution")`
+where `mobj` is the name of the fitted model object. We'll then calculate a $p$ value based on Wald $z$, which is just the estimate divided by its standard error, and then treated as a $z$ statistic (from the standard normal distribution). If we call that statistic `tval`, you can get the $p$ value using `2 * (1 - pnorm(abs(tval)))`.
 
-```{r extract-stats}
+**TASK: Write a new version of `extract_stats()` that takes `mobj`, a fitted model object as input, and returns a tibble with columns `sing` (`TRUE` for singular fit, `FALSE` otherwise), `conv` (`TRUE` for converged, `FALSE` otherwise), `estimate` with the fixed effect estimate for the effect of `cond`, `stderr` for the standard error, `tval` for the $t$-value, and `pval` for the $p$-value.**
+
+Test it by running it out on `mod_sim` which you estimated above. You should get the results like the following.
+
+```{r extract-stats, echo=FALSE}
 extract_stats <- function(mobj) {
   tibble(sing = isSingular(mobj),
          conv = check_converged(mobj),
@@ -482,48 +483,131 @@ extract_stats <- function(mobj) {
 }
 ```
 
+```{r es-test}
+extract_stats(mod_sim)
+```
+
+`r hide("Solution")`
+
+```{r es-show, ref.label="extract-stats"}
+```
+
 `r unhide()`
+
+Now we have completed the three main functions for a single run as shown in \@ref(fig:flow-img). We can try them out like this:
+
+```{r}
+generate_data(eff = 0, nsubj = 20, nitem = 10,
+              mu = 800, iri_sd = 80, sri_sd = 100,
+              srs_sd = 40, rcor = .2, err_sd = 200) |>
+  analyze_data() |>
+  extract_stats()
+```
+
+The next step will be to wrap this in a function.
 
 ### Re-write `do_once()`
 
-The function `do_once()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function `full_results()` which can be used as it is, and is repeated here so that you can conveniently paste it into your script.
+The function `do_once()` performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. 
 
-```{r full-results}
-full_results <- function(x, alpha = .05) {
+Now let's re-write `do_once()`. Here's starter code from the function we created for the one-sample t-test context. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
+
+```{r do-once-stub, eval=FALSE}
+do_once <- function(nmc, eff, nsubj, sd, alpha = .05) {
+
+  message("computing power over ", nmc, " runs with eff=",
+          eff, "; nsubj=", nsubj, "; sd = ", sd, "; alpha = ", alpha)
+  
+  tibble(run_id = seq_len(nmc),
+         dat = map(run_id, \(.x) generate_data(eff, nsubj, sd)),
+         mobj = map(dat, \(.x) analyze_data(.x)),
+         stats = map(mobj, \(.x) extract_stats(.x)))
+}
+```
+
+It doesn't do everything we need (yet) because in the end we'll want to `compute_power()` and return that instead. But we'll save that for later.
+
+```{r do-once-partial, echo=FALSE}
+do_once <- function(eff, nsubj, nitem, nmc,
+                   mu, iri_sd, sri_sd,
+                   srs_sd, rcor, err_sd) {
+  ## generate, analyze, and extract for a single parameter setting
+  message("computing stats over ", nmc,
+          " runs for nsubj=", nsubj, "; ",
+          "nitem=", nitem, "; ",
+          "eff=", eff)
+  tibble(run_id = seq_len(nmc)) |>
+    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
+                                                 mu, iri_sd, sri_sd,
+                                                 srs_sd, rcor, err_sd)),
+           mobj = map(dat, \(.x) analyze_data(.x)),
+           stats = map(mobj, \(.x) extract_stats(.x)))
+}
+```
+
+Try it out with the code below. Results should look as follows.
+
+```{r dop-test}
+set.seed(1451)
+
+do_test <- do_once(eff = 0, nsubj = 20, nitem = 10, nmc = 20,
+                   mu = 800, iri_sd = 80, sri_sd = 100,
+                   srs_sd = 40, rcor = .2, err_sd = 200)
+
+do_test
+```
+
+`r hide("Solution")`
+
+```{r do-once-partial-show, ref.label="do-once-partial"}
+```
+
+`r unhide()`
+
+### Update `do_once()` to return statistics
+
+We're nearly there. Our `do_once()` function returns the raw data from the run, but what we'd really like instead are the power statistics. So we'll need to re-write `compute_power()` and then include that in `do_once()`. We stored the results of the (old) `do_once()` in `do_test`, which is useful for testing it out. 
+
+Recall that we can get all the stats into a single table like so.
+
+```{r}
+do_test |>
+  select(run_id, stats) |>
+  unnest(stats)
+```
+
+**TASK: Write `compute_power()` to provide not only power information, but also reports the proportion of runs that had a 'singularity' message (`n_sing`) or that did not converge (`n_nonconv`).**
+
+Results should look like so.
+
+```{r compute-power}
+compute_power <- function(x, alpha = .05) {
   ## after completing all the Monte Carlo runs for a set,
   ## calculate statistics
   x |>
     select(run_id, stats) |>
     unnest(stats) |>
     summarize(n_sing = sum(sing),
-              n_unconv = sum(!conv),
+              n_nonconv = sum(!conv), 
               n_sig = sum(pval < alpha),
-              N = n())
+              N = n(),
+              power = n_sig / N)
 }
 ```
 
-Now let's re-write `do_once()`. Here's starter code. You'll need to change its arguments to match `generate_data()` as well as the arguments passed to `generate_data()` via `map()`. It's also a good idea to update the `message()` it prints for the user.
-
-```{r do-once-stub, eval=FALSE}
-do_once <- function(eff, nmc, nsubj, ntrials) {
-  ## generate, analyze, and extract for a single parameter setting
-  ## you shouldn't need to change anything about this function except
-  ## the arguments and paramemters passed to generate_data()
-  message("computing stats over ", nmc,
-          " runs for nsubj=", nsubj, "; ",
-          "ntrials=", ntrials, "; ",
-          "eff=", eff)
-  dat_full <- tibble(run_id = seq_len(nmc)) |>
-    mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, ntrials),
-           mobj = map(dat, \(.x) analyze_data(.x)),
-           stats = map(mobj, \(.x) extract_stats(.x))))
-  
-  bind_cols(tibble(fdat = list(dat_full)),
-            full_results(dat_full))
-}
+```{r}
+do_test |>
+  compute_power()
 ```
 
 `r hide("Solution")`
+
+```{r compute-power-show, ref.label="compute-power"}
+```
+
+`r unhide()`
+
+**TASK: update `do_once()` so that it ends with `compute_power()`.**
 
 ```{r do-once}
 do_once <- function(eff, nsubj, nitem, nmc,
@@ -534,25 +618,37 @@ do_once <- function(eff, nsubj, nitem, nmc,
           " runs for nsubj=", nsubj, "; ",
           "nitem=", nitem, "; ",
           "eff=", eff)
-  dat_full <- tibble(run_id = seq_len(nmc)) |>
+  
+  tibble(run_id = seq_len(nmc)) |>
     mutate(dat = map(run_id, \(.x) generate_data(eff, nsubj, nitem,
                                                  mu, iri_sd, sri_sd,
                                                  srs_sd, rcor, err_sd)),
            mobj = map(dat, \(.x) analyze_data(.x)),
-           stats = map(mobj, \(.x) extract_stats(.x)))
-  
-  bind_cols(tibble(fdat = list(dat_full)),
-            full_results(dat_full))
+           stats = map(mobj, \(.x) extract_stats(.x))) |>
+  compute_power()
 }
+```
+
+```{r}
+set.seed(1451)
+
+do_once(eff = 0, nsubj = 20, nitem = 10, nmc = 20,
+                   mu = 800, iri_sd = 80, sri_sd = 100,
+                   srs_sd = 40, rcor = .2, err_sd = 200)
+```
+
+`r hide("Solution")`
+
+```{r do-show, ref.label="do-once"}
 ```
 
 `r unhide()`
 
 ### Main code
 
-Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining `allsets` so that it calls `do_once()` with the new parameter settings. The rest you can just copy.
+Now that we've re-written all of the functions, let's add the following lines to create a fully reproducible script that we can run in batch mode.
 
-```{r main-stub-pre, echo=FALSE, eval=FALSE}
+```{r main-code, eval=FALSE}
 set.seed(1451) # for deterministic output
 
 ## determine effect sizes, nsubj, nitem, and nmc from the command line
@@ -569,13 +665,15 @@ nitem <- commandArgs(TRUE)[6] |> as.integer()
 
 params <- tibble(id = seq_len(steps),
                  eff = seq(eff_a, eff_b, length.out = steps))
-```
 
-```{r main-stub-post, eval=FALSE, echo=FALSE}
+allsets <- params |>
+  mutate(result = map(eff,
+                      \(.x) do_once(.x, nsubj = nsubj, nitem = nitem, nmc = nmc,
+                                    mu = 800, iri_sd = 80, sri_sd = 100,
+                                    srs_sd = 40, rcor = .2, err_sd = 200)))
+                      
 pow_result <- allsets |>
-  unnest(result) |>
-  mutate(power = n_sig / N) |>
-  select(-fdat)
+  unnest(result)
 
 pow_result
 
@@ -586,32 +684,6 @@ saveRDS(pow_result, outfile)
 
 message("results saved to '", outfile, "'")
 ```
-
-```{r main-stub, eval=FALSE}
-<<main-stub-pre>>
-
-allsets <- params |>
-  mutate(result = map(eff,
-                      \(.x) do_once(.x))) ## add remaining args
-
-<<main-stub-post>>
-```
-
-`r hide("Solution")`
-
-```{r main-code, eval=FALSE}
-<<main-stub-pre>>
-
-allsets <- params |>
-  mutate(result = map(eff,
-                      \(.x) do_once(.x, nsubj = nsubj, nitem = nitem, nmc = nmc,
-                                    mu = 800, iri_sd = 80, sri_sd = 100,
-                                    srs_sd = 40, rcor = .2, err_sd = 200)))
-                      
-<<main-stub-post>>
-```
-
-`r unhide()`
 
 ### The full script
 
@@ -646,7 +718,7 @@ requireNamespace("MASS") # make sure it's there but don't load it
 
 <<check-converged>>
 
-<<full-results>>
+<<compute-power>>
 
 <<do-once>>
 
@@ -654,4 +726,50 @@ requireNamespace("MASS") # make sure it's there but don't load it
 ## MAIN CODE STARTS HERE
 
 <<main-code>>
+```
+
+## Running in batch mode
+
+Now let's run our power simulation.
+
+Save the full script into a file named `my-power-script.R`.
+
+Go to your operating system's command line (or do so in RStudio), and navigate to the directory where you saved it.
+
+At the command line, type
+
+```
+Rscript my-power-script.R
+```
+
+This should produce an error because you haven't specified any command line arguments.
+
+```
+Error: need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'
+Execution halted
+```
+
+Let's try again, putting in arguments in that order.
+
+```
+Rscript my-power-script.R 1000 0 160 5 40 20
+```
+
+It worked!
+
+```
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=0
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=40
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=80
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=120
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=160
+# A tibble: 5 × 7
+     id   eff n_sing n_nonconv n_sig     N power
+  <int> <dbl>  <int>     <int> <int> <int> <dbl>
+1     1     0    298       309    64  1000 0.064
+2     2    40    257       270   200  1000 0.2
+3     3    80    282       293   577  1000 0.577
+4     4   120    271       283   844  1000 0.844
+5     5   160    279       287   982  1000 0.982
+results saved to 'sim-results_1000_0.00_160.00_5_40_20.rds'
 ```

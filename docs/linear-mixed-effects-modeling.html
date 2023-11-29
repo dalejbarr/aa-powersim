@@ -516,32 +516,31 @@ Solution
 </button>
 <div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">cond</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">cond</span> <span class="op">|</span> <span class="va">subj_id</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">item_id</span><span class="op">)</span>,</span>
-<span>                <span class="va">dat_sim2</span>, REML <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                <span class="va">dat_sim2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mod_sim</span>, corr <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code>## Linear mixed model fit by maximum likelihood  ['lmerMod']
+<pre><code>## Linear mixed model fit by REML ['lmerMod']
 ## Formula: Y ~ cond + (1 + cond | subj_id) + (1 | item_id)
 ##    Data: dat_sim2
 ## 
-##      AIC      BIC   logLik deviance df.resid 
-##  67657.9  67703.6 -33822.0  67643.9     4993 
+## REML criterion at convergence: 67628.2
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -3.7634 -0.6571 -0.0058  0.6572  3.2204 
+## -3.7640 -0.6570 -0.0054  0.6561  3.2214 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev. Corr
-##  subj_id  (Intercept) 10283.1  101.41       
-##           cond          993.8   31.52   0.13
-##  item_id  (Intercept)  7397.3   86.01       
-##  Residual             40296.4  200.74       
+##  subj_id  (Intercept) 10331.8  101.65       
+##           cond          996.5   31.57   0.13
+##  item_id  (Intercept)  7655.8   87.50       
+##  Residual             40295.6  200.74       
 ## Number of obs: 5000, groups:  subj_id, 100; item_id, 50
 ## 
 ## Fixed effects:
 ##             Estimate Std. Error t value
-## (Intercept)   784.73      16.09  48.776
-## cond           76.01      25.18   3.019</code></pre>
+## (Intercept)   784.73      16.26  48.252
+## cond           76.01      25.59   2.971</code></pre>
 </div>
 <p>Now see if you can identify the data generating parameters in the output of <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code>.</p>
 <p>First, try to find <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>.</p>
@@ -589,13 +588,13 @@ Solution (random effects)
 <td align="left"><span class="math inline">\(\hat{\tau}_{00}\)</span></td>
 <td align="left"><code>sri_sd</code></td>
 <td align="right">100.0</td>
-<td align="right">101.405</td>
+<td align="right">101.646</td>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(\hat{\tau}_{11}\)</span></td>
 <td align="left"><code>srs_sd</code></td>
 <td align="right">40.0</td>
-<td align="right">31.524</td>
+<td align="right">31.567</td>
 </tr>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\hat{\rho}\)</span></td>
@@ -607,13 +606,13 @@ Solution (random effects)
 <td align="left"><span class="math inline">\(\hat{\omega}_{00}\)</span></td>
 <td align="left"><code>iri_sd</code></td>
 <td align="right">80.0</td>
-<td align="right">86.008</td>
+<td align="right">87.498</td>
 </tr>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\hat{\sigma}\)</span></td>
 <td align="left"><code>err_sd</code></td>
 <td align="right">200.0</td>
-<td align="right">200.740</td>
+<td align="right">200.738</td>
 </tr>
 </tbody>
 </table></div>
@@ -726,9 +725,10 @@ Solution
 <h3>
 <span class="header-section-number">2.2.3</span> Re-write <code>extract_stats()</code><a class="anchor" aria-label="anchor" href="#re-write-extract_stats"><i class="fas fa-link"></i></a>
 </h3>
-<p>Currently, <code>extract_stats()</code> only pulls out information about the intercept term.</p>
-<p>Let's change it so it gets information about the coefficient of <code>cond</code>.</p>
-<p>Because this function calls <code>check_converged()</code>, we need to copy that into our session too.</p>
+<p>In the last section, we wrote the function <code>extract_stats()</code> to pull out statistics from a t-test object.</p>
+<p>Let's change it so it gets information about the regression coefficient (fixed effect) for <code>cond</code>. Unfortunately we can't use <code><a href="https://generics.r-lib.org/reference/tidy.html">broom::tidy()</a></code> here.</p>
+<p>Recall that we have suppressed any messages about singularity or nonconvergence. We want to track this information, so we'll get it from the fitted model object.</p>
+<p>To find out whether a fit is singular, we can use the function <code><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular()</a></code>. Figuring out whether a model has converged is more complicate. Use the helper function <code>check_converged()</code> below. This takes a fitted model object as input and returns <code>TRUE</code> if the model converged, <code>FALSE</code> otherwise.</p>
 <div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">check_converged</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co">## warning: this is kind of a hack!</span></span>
@@ -736,21 +736,24 @@ Solution
 <span>  <span class="va">sm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">sm</span><span class="op">$</span><span class="va">optinfo</span><span class="op">$</span><span class="va">conv</span><span class="op">$</span><span class="va">lme4</span><span class="op">$</span><span class="va">messages</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>And here's our previous version of <code>extract_stats()</code> that you need to change.</p>
+<p>Use <code><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef()</a></code> to get the fixed effects estimates from the model.</p>
+<p>You'll also want to get the standard error for the fixed effects. You can do so using the code</p>
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">extract_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
-<span>         conv <span class="op">=</span> <span class="fu">check_converged</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
-<span>         estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>         stderr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html">vcov</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>         tval <span class="op">=</span> <span class="va">estimate</span> <span class="op">/</span> <span class="va">stderr</span>,</span>
-<span>         pval <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">tval</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html">vcov</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>where <code>mobj</code> is the name of the fitted model object. We'll then calculate a <span class="math inline">\(p\)</span> value based on Wald <span class="math inline">\(z\)</span>, which is just the estimate divided by its standard error, and then treated as a <span class="math inline">\(z\)</span> statistic (from the standard normal distribution). If we call that statistic <code>tval</code>, you can get the <span class="math inline">\(p\)</span> value using <code>2 * (1 - pnorm(abs(tval)))</code>.</p>
+<p><strong>TASK: Write a new version of <code>extract_stats()</code> that takes <code>mobj</code>, a fitted model object as input, and returns a tibble with columns <code>sing</code> (<code>TRUE</code> for singular fit, <code>FALSE</code> otherwise), <code>conv</code> (<code>TRUE</code> for converged, <code>FALSE</code> otherwise), <code>estimate</code> with the fixed effect estimate for the effect of <code>cond</code>, <code>stderr</code> for the standard error, <code>tval</code> for the <span class="math inline">\(t\)</span>-value, and <code>pval</code> for the <span class="math inline">\(p\)</span>-value.</strong></p>
+<p>Test it by running it out on <code>mod_sim</code> which you estimated above. You should get the results like the following.</p>
+<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">extract_stats</span><span class="op">(</span><span class="va">mod_sim</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## # A tibble: 1 × 6
+##   sing  conv  estimate stderr  tval    pval
+##   &lt;lgl&gt; &lt;lgl&gt;    &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 FALSE TRUE      76.0   25.6  2.97 0.00297</code></pre>
 <div class="webex-solution">
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb108"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">extract_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/isSingular.html">isSingular</a></span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
 <span>         conv <span class="op">=</span> <span class="fu">check_converged</span><span class="op">(</span><span class="va">mobj</span><span class="op">)</span>,</span>
@@ -760,47 +763,75 @@ Solution
 <span>         pval <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">pnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">tval</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
+<p>Now we have completed the three main functions for a single run as shown in <a href="building-blocks-of-simulation.html#fig:flow-img">1.1</a>. We can try them out like this:</p>
+<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">generate_data</span><span class="op">(</span>eff <span class="op">=</span> <span class="fl">0</span>, nsubj <span class="op">=</span> <span class="fl">20</span>, nitem <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>              mu <span class="op">=</span> <span class="fl">800</span>, iri_sd <span class="op">=</span> <span class="fl">80</span>, sri_sd <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>              srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">analyze_data</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">extract_stats</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## # A tibble: 1 × 6
+##   sing  conv  estimate stderr   tval  pval
+##   &lt;lgl&gt; &lt;lgl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1 FALSE TRUE     -55.9   63.0 -0.888 0.375</code></pre>
+<p>The next step will be to wrap this in a function.</p>
 </div>
 <div id="re-write-do_once" class="section level3" number="2.2.4">
 <h3>
 <span class="header-section-number">2.2.4</span> Re-write <code>do_once()</code><a class="anchor" aria-label="anchor" href="#re-write-do_once"><i class="fas fa-link"></i></a>
 </h3>
-<p>The function <code>do_once()</code> performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP. It also depends upon the utility function <code>full_results()</code> which can be used as it is, and is repeated here so that you can conveniently paste it into your script.</p>
-<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">full_results</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
-<span>  <span class="co">## calculate statistics</span></span>
-<span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
-<span>              n_unconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>,</span>
-<span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
-<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>Now let's re-write <code>do_once()</code>. Here's starter code. You'll need to change its arguments to match <code>generate_data()</code> as well as the arguments passed to <code>generate_data()</code> via <code><a href="https://purrr.tidyverse.org/reference/map.html">map()</a></code>. It's also a good idea to update the <code><a href="https://rdrr.io/r/base/message.html">message()</a></code> it prints for the user.</p>
-<div class="sourceCode" id="cb110"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nmc</span>, <span class="va">nsubj</span>, <span class="va">ntrials</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co">## generate, analyze, and extract for a single parameter setting</span></span>
-<span>  <span class="co">## you shouldn't need to change anything about this function except</span></span>
-<span>  <span class="co">## the arguments and paramemters passed to generate_data()</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"computing stats over "</span>, <span class="va">nmc</span>,</span>
-<span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
-<span>          <span class="st">"ntrials="</span>, <span class="va">ntrials</span>, <span class="st">"; "</span>,</span>
-<span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">ntrials</span><span class="op">)</span>,</span>
-<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<p>The function <code>do_once()</code> performs all three functions (generates the data, analyzes it, and subtracts the results). It needs some minor changes to work with the parameters of the new DGP.</p>
+<p>Now let's re-write <code>do_once()</code>. Here's starter code from the function we created for the one-sample t-test context. You'll need to change its arguments to match <code>generate_data()</code> as well as the arguments passed to <code>generate_data()</code> via <code><a href="https://purrr.tidyverse.org/reference/map.html">map()</a></code>. It's also a good idea to update the <code><a href="https://rdrr.io/r/base/message.html">message()</a></code> it prints for the user.</p>
+<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">nmc</span>, <span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">sd</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"computing power over "</span>, <span class="va">nmc</span>, <span class="st">" runs with eff="</span>,</span>
+<span>          <span class="va">eff</span>, <span class="st">"; nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; sd = "</span>, <span class="va">sd</span>, <span class="st">"; alpha = "</span>, <span class="va">alpha</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span>,</span>
+<span>         dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">sd</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>         mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>         stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+<p>It doesn't do everything we need (yet) because in the end we'll want to <code>compute_power()</code> and return that instead. But we'll save that for later.</p>
+<p>Try it out with the code below. Results should look as follows.</p>
+<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">do_test</span> <span class="op">&lt;-</span> <span class="fu">do_once</span><span class="op">(</span>eff <span class="op">=</span> <span class="fl">0</span>, nsubj <span class="op">=</span> <span class="fl">20</span>, nitem <span class="op">=</span> <span class="fl">10</span>, nmc <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>                   mu <span class="op">=</span> <span class="fl">800</span>, iri_sd <span class="op">=</span> <span class="fl">80</span>, sri_sd <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>                   srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## computing stats over 20 runs for nsubj=20; nitem=10; eff=0</code></pre>
+<div class="sourceCode" id="cb116"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_test</span></span></code></pre></div>
+<pre><code>## # A tibble: 20 × 4
+##    run_id dat                mobj      stats           
+##     &lt;int&gt; &lt;list&gt;             &lt;list&gt;    &lt;list&gt;          
+##  1      1 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  2      2 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  3      3 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  4      4 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  5      5 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  6      6 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  7      7 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  8      8 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+##  9      9 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 10     10 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 11     11 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 12     12 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 13     13 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 14     14 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 15     15 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 16     16 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 17     17 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 18     18 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 19     19 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;
+## 20     20 &lt;tibble [200 × 4]&gt; &lt;lmerMod&gt; &lt;tibble [1 × 6]&gt;</code></pre>
 <div class="webex-solution">
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb111"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
 <span>                   <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                   <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
@@ -809,63 +840,148 @@ Solution
 <span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
-<div id="main-code" class="section level3" number="2.2.5">
+<div id="update-do_once-to-return-statistics" class="section level3" number="2.2.5">
 <h3>
-<span class="header-section-number">2.2.5</span> Main code<a class="anchor" aria-label="anchor" href="#main-code"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.2.5</span> Update <code>do_once()</code> to return statistics<a class="anchor" aria-label="anchor" href="#update-do_once-to-return-statistics"><i class="fas fa-link"></i></a>
 </h3>
-<p>Now that we've re-written all of the functions, let's adjust the main code of the template script. All you really need to change here is the code defining <code>allsets</code> so that it calls <code>do_once()</code> with the new parameter settings. The rest you can just copy.</p>
-<div class="sourceCode" id="cb112"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span> <span class="co"># for deterministic output</span></span>
-<span></span>
-<span><span class="co">## determine effect sizes, nsubj, nitem, and nmc from the command line</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">!=</span> <span class="fl">6L</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/stop.html">stop</a></span><span class="op">(</span><span class="st">"need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">nmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span>   <span class="co"># no. Monte Carlo runs</span></span>
-<span><span class="va">eff_a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">as.double</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># smallest effect size</span></span>
-<span><span class="va">eff_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/double.html">as.double</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># largest effect size</span></span>
-<span><span class="va">steps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># number of steps</span></span>
-<span><span class="va">nsubj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">nitem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html">commandArgs</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">steps</span><span class="op">)</span>,</span>
-<span>                 eff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">eff_a</span>, <span class="va">eff_b</span>, length.out <span class="op">=</span> <span class="va">steps</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">allsets</span> <span class="op">&lt;-</span> <span class="va">params</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>result <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">eff</span>,</span>
-<span>                      \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">do_once</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co">## add remaining args</span></span>
-<span></span>
-<span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pow_result</span></span>
-<span></span>
-<span><span class="va">outfile</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"sim-results_%d_%0.2f_%0.2f_%d_%d_%d.rds"</span>,</span>
-<span>                   <span class="va">nmc</span>, <span class="va">eff_a</span>, <span class="va">eff_b</span>, <span class="va">steps</span>, <span class="va">nsubj</span>, <span class="va">nitem</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">pow_result</span>, <span class="va">outfile</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"results saved to '"</span>, <span class="va">outfile</span>, <span class="st">"'"</span><span class="op">)</span></span></code></pre></div>
+<p>We're nearly there. Our <code>do_once()</code> function returns the raw data from the run, but what we'd really like instead are the power statistics. So we'll need to re-write <code>compute_power()</code> and then include that in <code>do_once()</code>. We stored the results of the (old) <code>do_once()</code> in <code>do_test</code>, which is useful for testing it out.</p>
+<p>Recall that we can get all the stats into a single table like so.</p>
+<div class="sourceCode" id="cb119"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_test</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## # A tibble: 20 × 7
+##    run_id sing  conv  estimate stderr    tval   pval
+##     &lt;int&gt; &lt;lgl&gt; &lt;lgl&gt;    &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
+##  1      1 TRUE  FALSE    74.7    72.0  1.04   0.300 
+##  2      2 TRUE  FALSE    91.5    61.6  1.49   0.137 
+##  3      3 TRUE  FALSE    68.6    29.6  2.32   0.0205
+##  4      4 FALSE TRUE     -9.17   42.0 -0.218  0.827 
+##  5      5 TRUE  FALSE   -36.0    79.1 -0.455  0.649 
+##  6      6 TRUE  FALSE   -86.2    37.0 -2.33   0.0199
+##  7      7 TRUE  FALSE    -3.02   56.5 -0.0534 0.957 
+##  8      8 TRUE  FALSE   -68.8    69.1 -0.995  0.320 
+##  9      9 TRUE  FALSE   -11.6    91.9 -0.126  0.900 
+## 10     10 FALSE TRUE    128.     77.3  1.66   0.0979
+## 11     11 TRUE  FALSE   -12.1    57.5 -0.211  0.833 
+## 12     12 FALSE TRUE     33.5    59.5  0.562  0.574 
+## 13     13 TRUE  FALSE    58.9    62.4  0.944  0.345 
+## 14     14 FALSE TRUE      9.97   66.3  0.150  0.880 
+## 15     15 TRUE  FALSE  -127.     51.1 -2.49   0.0128
+## 16     16 FALSE TRUE      2.55   66.0  0.0386 0.969 
+## 17     17 TRUE  FALSE   115.     60.0  1.91   0.0557
+## 18     18 TRUE  FALSE   -28.0    58.5 -0.478  0.633 
+## 19     19 TRUE  FALSE    64.5    53.8  1.20   0.231 
+## 20     20 TRUE  FALSE   -55.5    63.7 -0.872  0.383</code></pre>
+<p><strong>TASK: Write <code>compute_power()</code> to provide not only power information, but also reports the proportion of runs that had a 'singularity' message (<code>n_sing</code>) or that did not converge (<code>n_nonconv</code>).</strong></p>
+<p>Results should look like so.</p>
+<div class="sourceCode" id="cb121"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">compute_power</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
+<span>  <span class="co">## calculate statistics</span></span>
+<span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
+<span>              n_nonconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>, </span>
+<span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
+<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>              power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_test</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">compute_power</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## # A tibble: 1 × 5
+##   n_sing n_nonconv n_sig     N power
+##    &lt;int&gt;     &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
+## 1     15        15     3    20  0.15</code></pre>
 <div class="webex-solution">
 <button>
 Solution
 </button>
-<div class="sourceCode" id="cb113"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb124"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">compute_power</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
+<span>  <span class="co">## calculate statistics</span></span>
+<span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
+<span>              n_nonconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>, </span>
+<span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
+<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>              power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<p><strong>TASK: update <code>do_once()</code> so that it ends with <code>compute_power()</code>.</strong></p>
+<div class="sourceCode" id="cb125"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
+<span>                   <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
+<span>                   <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co">## generate, analyze, and extract for a single parameter setting</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"computing stats over "</span>, <span class="va">nmc</span>,</span>
+<span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
+<span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
+<span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
+<span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">compute_power</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">do_once</span><span class="op">(</span>eff <span class="op">=</span> <span class="fl">0</span>, nsubj <span class="op">=</span> <span class="fl">20</span>, nitem <span class="op">=</span> <span class="fl">10</span>, nmc <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>                   mu <span class="op">=</span> <span class="fl">800</span>, iri_sd <span class="op">=</span> <span class="fl">80</span>, sri_sd <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>                   srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
+<pre><code>## computing stats over 20 runs for nsubj=20; nitem=10; eff=0</code></pre>
+<pre><code>## # A tibble: 1 × 5
+##   n_sing n_nonconv n_sig     N power
+##    &lt;int&gt;     &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
+## 1     15        15     3    20  0.15</code></pre>
+<div class="webex-solution">
+<button>
+Solution
+</button>
+<div class="sourceCode" id="cb129"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
+<span>                   <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
+<span>                   <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co">## generate, analyze, and extract for a single parameter setting</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"computing stats over "</span>, <span class="va">nmc</span>,</span>
+<span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
+<span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
+<span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
+<span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
+<span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">compute_power</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+<div id="main-code" class="section level3" number="2.2.6">
+<h3>
+<span class="header-section-number">2.2.6</span> Main code<a class="anchor" aria-label="anchor" href="#main-code"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now that we've re-written all of the functions, let's add the following lines to create a fully reproducible script that we can run in batch mode.</p>
+<div class="sourceCode" id="cb130"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1451</span><span class="op">)</span> <span class="co"># for deterministic output</span></span>
 <span></span>
 <span><span class="co">## determine effect sizes, nsubj, nitem, and nmc from the command line</span></span>
@@ -890,9 +1006,7 @@ Solution
 <span>                                    srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pow_result</span></span>
 <span></span>
@@ -903,16 +1017,15 @@ Solution
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"results saved to '"</span>, <span class="va">outfile</span>, <span class="st">"'"</span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
-<div id="the-full-script-1" class="section level3" number="2.2.6">
+<div id="the-full-script-1" class="section level3" number="2.2.7">
 <h3>
-<span class="header-section-number">2.2.6</span> The full script<a class="anchor" aria-label="anchor" href="#the-full-script-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.2.7</span> The full script<a class="anchor" aria-label="anchor" href="#the-full-script-1"><i class="fas fa-link"></i></a>
 </h3>
 <div class="webex-solution">
 <button>
 Click here to see the full script
 </button>
-<div class="sourceCode" id="cb114"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb131"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#############################</span></span>
 <span><span class="co">## ADD-ON PACKAGES</span></span>
 <span></span>
@@ -993,16 +1106,17 @@ Click here to see the full script
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">sm</span><span class="op">$</span><span class="va">optinfo</span><span class="op">$</span><span class="va">conv</span><span class="op">$</span><span class="va">lme4</span><span class="op">$</span><span class="va">messages</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">full_results</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">compute_power</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">alpha</span> <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co">## after completing all the Monte Carlo runs for a set,</span></span>
 <span>  <span class="co">## calculate statistics</span></span>
 <span>  <span class="va">x</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">run_id</span>, <span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">stats</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>n_sing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">sing</span><span class="op">)</span>,</span>
-<span>              n_unconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>,</span>
+<span>              n_nonconv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">!</span><span class="va">conv</span><span class="op">)</span>, </span>
 <span>              n_sig <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">pval</span> <span class="op">&lt;</span> <span class="va">alpha</span><span class="op">)</span>,</span>
-<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>              N <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>              power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">do_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>, <span class="va">nmc</span>,</span>
@@ -1013,15 +1127,14 @@ Click here to see the full script
 <span>          <span class="st">" runs for nsubj="</span>, <span class="va">nsubj</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"nitem="</span>, <span class="va">nitem</span>, <span class="st">"; "</span>,</span>
 <span>          <span class="st">"eff="</span>, <span class="va">eff</span><span class="op">)</span></span>
-<span>  <span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>run_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">run_id</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">generate_data</span><span class="op">(</span><span class="va">eff</span>, <span class="va">nsubj</span>, <span class="va">nitem</span>,</span>
 <span>                                                 <span class="va">mu</span>, <span class="va">iri_sd</span>, <span class="va">sri_sd</span>,</span>
 <span>                                                 <span class="va">srs_sd</span>, <span class="va">rcor</span>, <span class="va">err_sd</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>           mobj <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">dat</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">analyze_data</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_cols.html">bind_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>fdat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>            <span class="fu">full_results</span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">)</span></span>
+<span>           stats <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">mobj</span>, \<span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="fu">extract_stats</span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">compute_power</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co">#############################</span></span>
@@ -1051,9 +1164,7 @@ Click here to see the full script
 <span>                                    srs_sd <span class="op">=</span> <span class="fl">40</span>, rcor <span class="op">=</span> <span class="fl">.2</span>, err_sd <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>                      </span>
 <span><span class="va">pow_result</span> <span class="op">&lt;-</span> <span class="va">allsets</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">n_sig</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">fdat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html">unnest</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pow_result</span></span>
 <span></span>
@@ -1063,8 +1174,38 @@ Click here to see the full script
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">pow_result</span>, <span class="va">outfile</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html">message</a></span><span class="op">(</span><span class="st">"results saved to '"</span>, <span class="va">outfile</span>, <span class="st">"'"</span><span class="op">)</span></span></code></pre></div>
-
 </div>
+</div>
+<div id="running-in-batch-mode" class="section level2" number="2.3">
+<h2>
+<span class="header-section-number">2.3</span> Running in batch mode<a class="anchor" aria-label="anchor" href="#running-in-batch-mode"><i class="fas fa-link"></i></a>
+</h2>
+<p>Now let's run our power simulation.</p>
+<p>Save the full script into a file named <code>my-power-script.R</code>.</p>
+<p>Go to your operating system's command line (or do so in RStudio), and navigate to the directory where you saved it.</p>
+<p>At the command line, type</p>
+<pre><code>Rscript my-power-script.R</code></pre>
+<p>This should produce an error because you haven't specified any command line arguments.</p>
+<pre><code>Error: need to specify 'nmc' 'eff_a' 'eff_b' 'steps' 'nsubj' 'nitem'
+Execution halted</code></pre>
+<p>Let's try again, putting in arguments in that order.</p>
+<pre><code>Rscript my-power-script.R 1000 0 160 5 40 20</code></pre>
+<p>It worked!</p>
+<pre><code>computing stats over 1000 runs for nsubj=40; nitem=20; eff=0
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=40
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=80
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=120
+computing stats over 1000 runs for nsubj=40; nitem=20; eff=160
+# A tibble: 5 × 7
+     id   eff n_sing n_nonconv n_sig     N power
+  &lt;int&gt; &lt;dbl&gt;  &lt;int&gt;     &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
+1     1     0    298       309    64  1000 0.064
+2     2    40    257       270   200  1000 0.2
+3     3    80    282       293   577  1000 0.577
+4     4   120    271       283   844  1000 0.844
+5     5   160    279       287   982  1000 0.982
+results saved to 'sim-results_1000_0.00_160.00_5_40_20.rds'</code></pre>
+
 </div>
 </div>
 <script>
@@ -1211,10 +1352,12 @@ $( document ).ready(function() {
 <li><a class="nav-link" href="#re-write-analyze_data"><span class="header-section-number">2.2.2</span> Re-write analyze_data()</a></li>
 <li><a class="nav-link" href="#re-write-extract_stats"><span class="header-section-number">2.2.3</span> Re-write extract_stats()</a></li>
 <li><a class="nav-link" href="#re-write-do_once"><span class="header-section-number">2.2.4</span> Re-write do_once()</a></li>
-<li><a class="nav-link" href="#main-code"><span class="header-section-number">2.2.5</span> Main code</a></li>
-<li><a class="nav-link" href="#the-full-script-1"><span class="header-section-number">2.2.6</span> The full script</a></li>
+<li><a class="nav-link" href="#update-do_once-to-return-statistics"><span class="header-section-number">2.2.5</span> Update do_once() to return statistics</a></li>
+<li><a class="nav-link" href="#main-code"><span class="header-section-number">2.2.6</span> Main code</a></li>
+<li><a class="nav-link" href="#the-full-script-1"><span class="header-section-number">2.2.7</span> The full script</a></li>
 </ul>
 </li>
+<li><a class="nav-link" href="#running-in-batch-mode"><span class="header-section-number">2.3</span> Running in batch mode</a></li>
 </ul>
 
       <div class="book-extra">

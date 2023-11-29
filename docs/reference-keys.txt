@@ -35,8 +35,10 @@ wrapping-the-code-into-generate_data
 re-write-analyze_data
 re-write-extract_stats
 re-write-do_once
+update-do_once-to-return-statistics
 main-code
 the-full-script-1
+running-in-batch-mode
 references-and-further-reading
 further-reading
 r-packages
