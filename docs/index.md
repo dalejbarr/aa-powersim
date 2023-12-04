@@ -1,7 +1,7 @@
 --- 
 title: "Simulating power for mixed-effects models"
 author: "Dale J. Barr"
-date: "2023-11-29"
+date: "2023-12-04"
 site: bookdown::bookdown_site
 documentclass: book
 bibliography: [refs.bib, packages.bib]

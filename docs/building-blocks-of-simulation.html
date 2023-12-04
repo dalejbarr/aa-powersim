@@ -183,7 +183,7 @@ Solution
 <pre><code>## [1] 0.000000 2.000000 2.807355 3.169925 3.807355</code></pre>
 <p>This allows us to call <code><a href="https://rdrr.io/r/base/Log.html">log()</a></code> in the "normal" way (i.e., the way we would do it if typing in the console. The <code>\(.x)</code> says to R "pass along the value from <code>x</code> you're currently working with to the function on the right hand side, giving this new value <code>.x</code>". Also, making explicit the passing of the value from <code><a href="https://purrr.tidyverse.org/reference/map.html">map()</a></code> to the function you wish to repeat makes it easy to work with situations where the varying value is not the first argument of that function.</p>
 <p>If you have multiple arguments you need to pass to the function, you can do this using <code><a href="https://purrr.tidyverse.org/reference/pmap.html">purrr::pmap()</a></code>, whose first argument takes a list of function arguments.</p>
-<p>For a deep dive into the topic of iteration, see <a href="https://TODO" class="uri">https://TODO</a>.</p>
+<p>For a deep dive into the topic of iteration, see <a href="https://r4ds.hadley.nz/iteration">R for Data Science by Wickham, Çentinkaya-Rundel, and Grolemund</a>.</p>
 <p><strong>TASK: Write a call to <code><a href="https://purrr.tidyverse.org/reference/map.html">map_dbl()</a></code> that calculates the log of 3 but with bases varying from 2 to 7.</strong></p>
 <div class="webex-solution">
 <button>
@@ -218,7 +218,7 @@ Solution
 <h4>
 <span class="header-section-number">1.1.4.1</span> Save typing with <code>rep()</code>, <code>seq()</code>, and <code>seq_len()</code><a class="anchor" aria-label="anchor" href="#save-typing-with-rep-seq-and-seq_len"><i class="fas fa-link"></i></a>
 </h4>
-<p>Let's now say you are going to run these participants on a <a href="https://TODO">Stroop interference task</a> where they see color words printed in congruent or incongruent colors (e.g., the word "RED" printed in red font or green font) and have to name the color of the font. Let's assume that each person gets each word twice, once in the congruent condition and once in the incongruent condition. Now you want to make a table that has each of the six colors in each condition. The resulting table should look like this.</p>
+<p>Let's now say you are going to run these participants on a <a href="https://en.wikipedia.org/wiki/Stroop_effect">Stroop interference task</a> where they see color words printed in congruent or incongruent colors (e.g., the word "RED" printed in red font or green font) and have to name the color of the font. Let's assume that each person gets each word twice, once in the congruent condition and once in the incongruent condition. Now you want to make a table that has each of the six colors in each condition. The resulting table should look like this.</p>
 <pre><code>## # A tibble: 12 × 2
 ##    word   cond       
 ##    &lt;chr&gt;  &lt;chr&gt;      
@@ -1053,7 +1053,7 @@ $( document ).ready(function() {
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Simulating power for mixed-effects models</strong>" was written by Dale J. Barr. It was last built on 2023-11-29.</p>
+    <p>"<strong>Simulating power for mixed-effects models</strong>" was written by Dale J. Barr. It was last built on 2023-12-04.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

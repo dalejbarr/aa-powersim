@@ -165,7 +165,7 @@ This allows us to call `log()` in the "normal" way (i.e., the way we would do it
 
 If you have multiple arguments you need to pass to the function, you can do this using `purrr::pmap()`, whose first argument takes a list of function arguments. 
 
-For a deep dive into the topic of iteration, see <https://TODO>.
+For a deep dive into the topic of iteration, see [R for Data Science by Wickham, Çentinkaya-Rundel, and Grolemund](https://r4ds.hadley.nz/iteration).
 
 **TASK: Write a call to `map_dbl()` that calculates the log of 3 but with bases varying from 2 to 7.**
 
@@ -215,7 +215,7 @@ participants
 
 #### Save typing with `rep()`, `seq()`, and `seq_len()`
 
-Let's now say you are going to run these participants on a [Stroop interference task](https://TODO) where they see color words printed in congruent or incongruent colors (e.g., the word "RED" printed in red font or green font) and have to name the color of the font. Let's assume that each person gets each word twice, once in the congruent condition and once in the incongruent condition. Now you want to make a table that has each of the six colors in each condition. The resulting table should look like this.
+Let's now say you are going to run these participants on a [Stroop interference task](https://en.wikipedia.org/wiki/Stroop_effect) where they see color words printed in congruent or incongruent colors (e.g., the word "RED" printed in red font or green font) and have to name the color of the font. Let's assume that each person gets each word twice, once in the congruent condition and once in the incongruent condition. Now you want to make a table that has each of the six colors in each condition. The resulting table should look like this.
 
 
 
